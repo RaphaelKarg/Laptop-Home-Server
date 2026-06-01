@@ -328,10 +328,10 @@
         <mxCell id="5_MwVDp4FavHJGoaNr7O-23" parent="1" style="image;points=[];aspect=fixed;html=1;align=center;shadow=0;dashed=0;image=img/lib/allied_telesis/computer_and_terminals/Server_Desktop.svg;" value="&lt;font style=&quot;color: light-dark(rgb(0, 0, 0), rgb(0, 255, 0));&quot;&gt;TAILSCALE COORDINATION SERVER &lt;br&gt;(P2P Mesh)&lt;/font&gt;" vertex="1">
           <mxGeometry height="80" width="63.11" x="-210" y="270" as="geometry" />
         </mxCell>
-        <mxCell id="5_MwVDp4FavHJGoaNr7O-45" connectable="0" parent="1" style="group" value="" vertex="1">
+        <mxCell id="5_MwVDp4FavHJGoaNr7O-45" connectable="0" parent="1" style="group;strokeColor=light-dark(#000000,#FFFF33);" value="" vertex="1">
           <mxGeometry height="91.9" width="314.4000000000001" x="630" y="1060" as="geometry" />
         </mxCell>
-        <mxCell id="CMprtpoPu1QtMEZRB6yr-40" parent="5_MwVDp4FavHJGoaNr7O-45" style="verticalLabelPosition=bottom;verticalAlign=top;html=1;shape=mxgraph.basic.rect;fillColor2=none;strokeWidth=1;size=20;indent=5;" value="&lt;font style=&quot;color: light-dark(rgb(0, 0, 0), rgb(255, 255, 0)); font-size: 24px;&quot;&gt;&lt;b style=&quot;&quot;&gt;Local Network (LAN)&lt;/b&gt;&lt;/font&gt;" vertex="1">
+        <mxCell id="CMprtpoPu1QtMEZRB6yr-40" parent="5_MwVDp4FavHJGoaNr7O-45" style="verticalLabelPosition=bottom;verticalAlign=top;html=1;shape=mxgraph.basic.rect;fillColor2=none;strokeWidth=1;size=20;indent=5;strokeColor=light-dark(#000000,#FFFF00);" value="&lt;font style=&quot;color: light-dark(rgb(0, 0, 0), rgb(255, 255, 0)); font-size: 24px;&quot;&gt;&lt;b style=&quot;&quot;&gt;Local Network (LAN)&lt;/b&gt;&lt;/font&gt;" vertex="1">
           <mxGeometry height="91.9" width="314.4" as="geometry" />
         </mxCell>
         <mxCell id="CMprtpoPu1QtMEZRB6yr-18" parent="5_MwVDp4FavHJGoaNr7O-45" style="image;points=[];aspect=fixed;html=1;align=center;shadow=0;dashed=0;image=img/lib/allied_telesis/computer_and_terminals/Personal_Computer.svg;" value="" vertex="1">
@@ -375,13 +375,13 @@
         <mxCell id="CMprtpoPu1QtMEZRB6yr-43" parent="1" style="image;points=[];aspect=fixed;html=1;align=center;shadow=0;dashed=0;image=img/lib/allied_telesis/computer_and_terminals/Smartphone.svg;" value="" vertex="1">
           <mxGeometry height="43.199999999999996" width="19.8" x="-329.29" y="616.8000000000001" as="geometry" />
         </mxCell>
-        <mxCell id="5_MwVDp4FavHJGoaNr7O-53" connectable="0" parent="1" style="group;strokeColor=default;" value="" vertex="1">
+        <mxCell id="5_MwVDp4FavHJGoaNr7O-53" connectable="0" parent="1" style="group;" value="" vertex="1">
           <mxGeometry height="183.8" width="370" x="-740.2" y="1006.2" as="geometry" />
         </mxCell>
         <mxCell id="5_MwVDp4FavHJGoaNr7O-54" connectable="0" parent="5_MwVDp4FavHJGoaNr7O-53" style="group;strokeColor=#FFFF33;" value="" vertex="1">
           <mxGeometry height="183.79999999999995" width="370" as="geometry" />
         </mxCell>
-        <mxCell id="CMprtpoPu1QtMEZRB6yr-42" parent="5_MwVDp4FavHJGoaNr7O-54" style="verticalLabelPosition=bottom;verticalAlign=top;html=1;shape=mxgraph.basic.rect;fillColor2=none;strokeWidth=1;size=20;indent=5;fontSize=24;" value="&lt;font style=&quot;color: light-dark(rgb(0, 0, 0), rgb(255, 255, 0));&quot;&gt;&lt;b&gt;Local Network (LAN)&lt;/b&gt;&lt;/font&gt;" vertex="1">
+        <mxCell id="CMprtpoPu1QtMEZRB6yr-42" parent="5_MwVDp4FavHJGoaNr7O-54" style="verticalLabelPosition=bottom;verticalAlign=top;html=1;shape=mxgraph.basic.rect;fillColor2=none;strokeWidth=1;size=20;indent=5;fontSize=24;strokeColor=light-dark(#000000,#FFFF33);" value="&lt;font style=&quot;color: light-dark(rgb(0, 0, 0), rgb(255, 255, 0));&quot;&gt;&lt;b&gt;Local Network (LAN)&lt;/b&gt;&lt;/font&gt;" vertex="1">
           <mxGeometry height="183.79999999999995" width="370" as="geometry" />
         </mxCell>
         <mxCell id="CMprtpoPu1QtMEZRB6yr-9" parent="5_MwVDp4FavHJGoaNr7O-54" style="image;html=1;image=img/lib/clip_art/computers/Laptop_128x128.png" value="" vertex="1">
