@@ -1,9 +1,12 @@
 <mxfile host="app.diagrams.net">
   <diagram name="Page-1" id="M04a26l0yUvM6lZ5RzKZ">
-    <mxGraphModel dx="2870" dy="1144" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="3397" dy="2524" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
+        <mxCell id="OY5vcccAJUDQhccSnd96-3" parent="1" style="rounded=0;whiteSpace=wrap;html=1;strokeWidth=2;strokeColor=light-dark(#000000,#FFFF33);" value="" vertex="1">
+          <mxGeometry height="920" width="1720" x="-760" y="470" as="geometry" />
+        </mxCell>
         <mxCell id="5_MwVDp4FavHJGoaNr7O-55" connectable="0" parent="1" style="group;strokeWidth=1;strokeColor=none;" value="" vertex="1">
           <mxGeometry height="170" width="710" x="-270" y="1030" as="geometry" />
         </mxCell>
@@ -12,7 +15,7 @@
             <mxPoint x="355" y="-100" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="CMprtpoPu1QtMEZRB6yr-23" parent="5_MwVDp4FavHJGoaNr7O-55" style="verticalLabelPosition=bottom;verticalAlign=top;html=1;shape=mxgraph.basic.rect;fillColor2=none;strokeWidth=2;size=20;indent=5;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;align=center;fillColor=default;strokeColor=light-dark(#000000,#FFFF00);" value="&lt;span style=&quot;font-size: 25px;&quot;&gt;Linux / CasaOS System &lt;br&gt;Docker Containers&lt;/span&gt;" vertex="1">
+        <mxCell id="CMprtpoPu1QtMEZRB6yr-23" parent="5_MwVDp4FavHJGoaNr7O-55" style="verticalLabelPosition=bottom;verticalAlign=top;html=1;shape=mxgraph.basic.rect;fillColor2=none;strokeWidth=2;size=20;indent=5;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;align=center;fillColor=default;strokeColor=light-dark(#000000,#FFFF00);" value="&lt;span style=&quot;font-size: 25px;&quot;&gt;&lt;font style=&quot;color: light-dark(rgb(0, 0, 0), rgb(255, 255, 51));&quot;&gt;Linux / CasaOS System &lt;br&gt;Docker Containers&lt;/font&gt;&lt;/span&gt;" vertex="1">
           <mxGeometry height="170" width="710" as="geometry" />
         </mxCell>
         <mxCell id="CMprtpoPu1QtMEZRB6yr-24" parent="5_MwVDp4FavHJGoaNr7O-55" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/networking/Network_Security_Groups.svg;" value="&lt;br&gt;AdGuard Home &lt;br&gt;(Security Server)&lt;div&gt;&lt;br&gt;&lt;/div&gt;" vertex="1">
@@ -233,11 +236,14 @@
         <mxCell id="5_MwVDp4FavHJGoaNr7O-26" edge="1" parent="1" source="CMprtpoPu1QtMEZRB6yr-35" style="edgeStyle=none;curved=1;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.25;entryY=0;entryDx=0;entryDy=0;fontSize=12;startSize=8;endSize=8;exitX=0.253;exitY=1.032;exitDx=0;exitDy=0;exitPerimeter=0;strokeWidth=2;dashed=1;strokeColor=light-dark(#000000,#00FF00);flowAnimation=1;" target="CMprtpoPu1QtMEZRB6yr-11">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="CMprtpoPu1QtMEZRB6yr-35" parent="1" style="image;html=1;image=img/lib/clip_art/computers/Network_128x128.png" value="&lt;font style=&quot;font-size: 20px; color: light-dark(rgb(0, 0, 0), rgb(0, 255, 255));&quot;&gt;INTERNET&lt;/font&gt;" vertex="1">
+        <mxCell id="4MVjkbDJUmTYvOnyfoOs-1" edge="1" parent="1" source="CMprtpoPu1QtMEZRB6yr-35" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="CMprtpoPu1QtMEZRB6yr-11" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="CMprtpoPu1QtMEZRB6yr-35" parent="1" style="image;html=1;image=img/lib/clip_art/computers/Network_128x128.png" value="&lt;font style=&quot;font-size: 20px; color: light-dark(rgb(0, 0, 0), rgb(51, 153, 255));&quot;&gt;INTERNET&lt;/font&gt;" vertex="1">
           <mxGeometry height="80" width="80" x="45" y="280" as="geometry" />
         </mxCell>
         <mxCell id="CMprtpoPu1QtMEZRB6yr-64" connectable="0" parent="1" style="group;dashed=1;strokeColor=light-dark(#000000,#00FF00);" value="" vertex="1">
-          <mxGeometry height="140" width="535.3" x="-182.65" y="60" as="geometry" />
+          <mxGeometry height="140" width="535.3" x="-182.65" y="-30" as="geometry" />
         </mxCell>
         <mxCell id="CMprtpoPu1QtMEZRB6yr-63" parent="CMprtpoPu1QtMEZRB6yr-64" style="verticalLabelPosition=bottom;verticalAlign=top;html=1;shape=mxgraph.basic.rect;fillColor2=none;strokeWidth=1;size=20;indent=5;dashed=1;" value="&lt;font style=&quot;font-size: 24px; color: light-dark(rgb(0, 0, 0), rgb(255, 0, 0));&quot;&gt;Remote Devices&lt;/font&gt;" vertex="1">
           <mxGeometry height="140" width="535.3" as="geometry" />
@@ -283,8 +289,8 @@
             <mxPoint x="38" y="61" as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="CMprtpoPu1QtMEZRB6yr-83" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="&lt;font style=&quot;color: light-dark(rgb(0, 0, 0), rgb(0, 255, 255)); font-size: 16px;&quot;&gt;Secure DoH / DNS&amp;nbsp;&lt;br&gt;Requests&lt;/font&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;" vertex="1">
-          <mxGeometry height="30" width="150" x="-170" y="440" as="geometry" />
+        <mxCell id="CMprtpoPu1QtMEZRB6yr-83" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="&lt;font style=&quot;color: light-dark(rgb(0, 0, 0), rgb(0, 255, 255)); font-size: 16px;&quot;&gt;Secure DNS over HTTP (DoH)&amp;nbsp;&lt;br&gt;Requests&lt;/font&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="30" width="180" x="-189.49" y="430" as="geometry" />
         </mxCell>
         <mxCell id="5_MwVDp4FavHJGoaNr7O-12" edge="1" parent="1" source="5_MwVDp4FavHJGoaNr7O-9" style="edgeStyle=none;curved=1;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=12;startSize=8;endSize=8;strokeColor=light-dark(#000000,#FF8000);dashed=1;strokeWidth=2;flowAnimation=1;">
           <mxGeometry relative="1" as="geometry">
@@ -325,13 +331,13 @@
             <mxPoint x="-140" y="320" as="sourcePoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="5_MwVDp4FavHJGoaNr7O-23" parent="1" style="image;points=[];aspect=fixed;html=1;align=center;shadow=0;dashed=0;image=img/lib/allied_telesis/computer_and_terminals/Server_Desktop.svg;" value="&lt;font style=&quot;color: light-dark(rgb(0, 0, 0), rgb(0, 255, 0));&quot;&gt;TAILSCALE COORDINATION SERVER &lt;br&gt;(P2P Mesh)&lt;/font&gt;" vertex="1">
+        <mxCell id="5_MwVDp4FavHJGoaNr7O-23" parent="1" style="image;points=[];aspect=fixed;html=1;align=center;shadow=0;dashed=0;image=img/lib/allied_telesis/computer_and_terminals/Server_Desktop.svg;" value="&lt;font style=&quot;color: light-dark(rgb(0, 0, 0), rgb(0, 255, 0));&quot;&gt;TAILSCALE COORDINATION SERVER &lt;br&gt;(P2P Mesh VPN)&lt;/font&gt;" vertex="1">
           <mxGeometry height="80" width="63.11" x="-210" y="270" as="geometry" />
         </mxCell>
         <mxCell id="5_MwVDp4FavHJGoaNr7O-45" connectable="0" parent="1" style="group;strokeColor=light-dark(#000000,#FFFF33);" value="" vertex="1">
           <mxGeometry height="91.9" width="314.4000000000001" x="630" y="1060" as="geometry" />
         </mxCell>
-        <mxCell id="CMprtpoPu1QtMEZRB6yr-40" parent="5_MwVDp4FavHJGoaNr7O-45" style="verticalLabelPosition=bottom;verticalAlign=top;html=1;shape=mxgraph.basic.rect;fillColor2=none;strokeWidth=1;size=20;indent=5;strokeColor=light-dark(#000000,#FFFF00);" value="&lt;font style=&quot;color: light-dark(rgb(0, 0, 0), rgb(255, 255, 0)); font-size: 24px;&quot;&gt;&lt;b style=&quot;&quot;&gt;Local Network (LAN)&lt;/b&gt;&lt;/font&gt;" vertex="1">
+        <mxCell id="CMprtpoPu1QtMEZRB6yr-40" parent="5_MwVDp4FavHJGoaNr7O-45" style="verticalLabelPosition=bottom;verticalAlign=top;html=1;shape=mxgraph.basic.rect;fillColor2=none;strokeWidth=1;size=20;indent=5;strokeColor=light-dark(#000000,#FFFF00);" value="&lt;font style=&quot;color: light-dark(rgb(0, 0, 0), rgb(255, 255, 0)); font-size: 24px;&quot;&gt;&lt;b style=&quot;&quot;&gt;LOCAL HOSTS&lt;/b&gt;&lt;/font&gt;" vertex="1">
           <mxGeometry height="91.9" width="314.4" as="geometry" />
         </mxCell>
         <mxCell id="CMprtpoPu1QtMEZRB6yr-18" parent="5_MwVDp4FavHJGoaNr7O-45" style="image;points=[];aspect=fixed;html=1;align=center;shadow=0;dashed=0;image=img/lib/allied_telesis/computer_and_terminals/Personal_Computer.svg;" value="" vertex="1">
@@ -381,7 +387,7 @@
         <mxCell id="5_MwVDp4FavHJGoaNr7O-54" connectable="0" parent="5_MwVDp4FavHJGoaNr7O-53" style="group;strokeColor=#FFFF33;" value="" vertex="1">
           <mxGeometry height="183.79999999999995" width="370" as="geometry" />
         </mxCell>
-        <mxCell id="CMprtpoPu1QtMEZRB6yr-42" parent="5_MwVDp4FavHJGoaNr7O-54" style="verticalLabelPosition=bottom;verticalAlign=top;html=1;shape=mxgraph.basic.rect;fillColor2=none;strokeWidth=1;size=20;indent=5;fontSize=24;strokeColor=light-dark(#000000,#FFFF33);" value="&lt;font style=&quot;color: light-dark(rgb(0, 0, 0), rgb(255, 255, 0));&quot;&gt;&lt;b&gt;Local Network (LAN)&lt;/b&gt;&lt;/font&gt;" vertex="1">
+        <mxCell id="CMprtpoPu1QtMEZRB6yr-42" parent="5_MwVDp4FavHJGoaNr7O-54" style="verticalLabelPosition=bottom;verticalAlign=top;html=1;shape=mxgraph.basic.rect;fillColor2=none;strokeWidth=1;size=20;indent=5;fontSize=24;strokeColor=light-dark(#000000,#FFFF33);" value="&lt;font style=&quot;color: light-dark(rgb(50, 50, 0), rgb(255, 255, 0));&quot;&gt;&lt;b style=&quot;&quot;&gt;LOCAL HOSTS&lt;/b&gt;&lt;/font&gt;" vertex="1">
           <mxGeometry height="183.79999999999995" width="370" as="geometry" />
         </mxCell>
         <mxCell id="CMprtpoPu1QtMEZRB6yr-9" parent="5_MwVDp4FavHJGoaNr7O-54" style="image;html=1;image=img/lib/clip_art/computers/Laptop_128x128.png" value="" vertex="1">
@@ -390,23 +396,23 @@
         <mxCell id="CMprtpoPu1QtMEZRB6yr-21" parent="5_MwVDp4FavHJGoaNr7O-54" style="image;html=1;image=img/lib/clip_art/computers/Laptop_128x128.png" value="" vertex="1">
           <mxGeometry height="100.95" width="100" x="50" y="40.95" as="geometry" />
         </mxCell>
-        <mxCell id="5_MwVDp4FavHJGoaNr7O-60" parent="1" style="shape=zigzag;html=1;fillColor=none;rotation=-15;" value="" vertex="1">
+        <mxCell id="5_MwVDp4FavHJGoaNr7O-60" parent="1" style="shape=zigzag;html=1;fillColor=none;rotation=-15;rounded=1;" value="" vertex="1">
           <mxGeometry height="20" width="300" x="-309.49" y="553.88" as="geometry" />
         </mxCell>
-        <mxCell id="5_MwVDp4FavHJGoaNr7O-61" parent="1" style="shape=zigzag;html=1;rotation=-165;" value="" vertex="1">
+        <mxCell id="5_MwVDp4FavHJGoaNr7O-61" parent="1" style="shape=zigzag;html=1;rotation=-165;shadow=0;rounded=1;" value="" vertex="1">
           <mxGeometry height="20" width="300" x="169.9970643943855" y="553.8821150282688" as="geometry" />
         </mxCell>
-        <mxCell id="5_MwVDp4FavHJGoaNr7O-66" edge="1" parent="1" source="5_MwVDp4FavHJGoaNr7O-64" style="edgeStyle=none;curved=1;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=12;startSize=8;endSize=8;strokeColor=light-dark(#006F6F,#00FFFF);dashed=1;strokeWidth=2;flowAnimation=1;">
+        <mxCell id="5_MwVDp4FavHJGoaNr7O-66" edge="1" parent="1" source="5_MwVDp4FavHJGoaNr7O-64" style="edgeStyle=none;curved=1;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=12;startSize=8;endSize=8;strokeColor=light-dark(#006F6F,#00FFFF);dashed=1;strokeWidth=2;flowAnimation=1;entryX=0.985;entryY=0.144;entryDx=0;entryDy=0;entryPerimeter=0;" target="CMprtpoPu1QtMEZRB6yr-35">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="130" y="340" as="targetPoint" />
+            <mxPoint x="210" y="290" as="targetPoint" />
           </mxGeometry>
         </mxCell>
         <mxCell id="5_MwVDp4FavHJGoaNr7O-64" parent="1" style="image;points=[];aspect=fixed;html=1;align=center;shadow=0;dashed=0;image=img/lib/allied_telesis/computer_and_terminals/Server_Desktop.svg;" value="&lt;font style=&quot;color: light-dark(rgb(0, 0, 0), rgb(51, 255, 255));&quot;&gt;QUAD9 - SECURE / ENCRYPTED &lt;br&gt;DNS SERVER&lt;br&gt;9.9.9.9&lt;/font&gt;" vertex="1">
-          <mxGeometry height="80" width="63.11" x="320" y="400" as="geometry" />
+          <mxGeometry height="80" width="63.11" x="320" y="140" as="geometry" />
         </mxCell>
-        <mxCell id="5_MwVDp4FavHJGoaNr7O-67" edge="1" parent="1" style="edgeStyle=none;curved=1;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.053;entryY=0.45;entryDx=0;entryDy=0;entryPerimeter=0;fontSize=12;startSize=8;endSize=8;strokeColor=light-dark(#000000,#33FFFF);dashed=1;strokeWidth=2;flowAnimation=1;" target="5_MwVDp4FavHJGoaNr7O-64">
+        <mxCell id="5_MwVDp4FavHJGoaNr7O-67" edge="1" parent="1" source="CMprtpoPu1QtMEZRB6yr-35" style="edgeStyle=none;curved=1;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.053;entryY=0.45;entryDx=0;entryDy=0;entryPerimeter=0;fontSize=12;startSize=8;endSize=8;strokeColor=light-dark(#000000,#33FFFF);dashed=1;strokeWidth=2;flowAnimation=1;exitX=0.896;exitY=0.003;exitDx=0;exitDy=0;exitPerimeter=0;" target="5_MwVDp4FavHJGoaNr7O-64">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="130" y="350" as="sourcePoint" />
+            <mxPoint x="130" y="290" as="sourcePoint" />
           </mxGeometry>
         </mxCell>
         <mxCell id="5_MwVDp4FavHJGoaNr7O-70" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=12;startSize=8;endSize=8;strokeColor=light-dark(#000000,#33FFFF);dashed=1;strokeWidth=2;flowAnimation=1;">
@@ -420,6 +426,9 @@
             <mxPoint x="-330" y="600" as="sourcePoint" />
             <mxPoint x="-180" y="1200" as="targetPoint" />
           </mxGeometry>
+        </mxCell>
+        <mxCell id="OY5vcccAJUDQhccSnd96-5" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;glass=0;shadow=0;" value="&lt;font style=&quot;font-size: 20px; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 0));&quot;&gt;&lt;b&gt;HOME &lt;br&gt;LOCAL AREA&amp;nbsp; NETWORK&lt;br&gt;(LAN)&lt;/b&gt;&lt;/font&gt;" vertex="1">
+          <mxGeometry height="30" width="270" x="-680" y="520" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
