@@ -1,6 +1,6 @@
 <mxfile host="app.diagrams.net">
   <diagram name="Page-1" id="M04a26l0yUvM6lZ5RzKZ">
-    <mxGraphModel dx="2325" dy="1924" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="2851" dy="2219" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -21,7 +21,7 @@
         <mxCell id="CMprtpoPu1QtMEZRB6yr-24" parent="5_MwVDp4FavHJGoaNr7O-55" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/networking/Network_Security_Groups.svg;" value="&lt;br&gt;AdGuard Home &lt;br&gt;(Security Server)&lt;div&gt;&lt;br&gt;&lt;/div&gt;" vertex="1">
           <mxGeometry height="60" width="49.41" x="70" y="41.8" as="geometry" />
         </mxCell>
-        <mxCell id="CMprtpoPu1QtMEZRB6yr-25" parent="5_MwVDp4FavHJGoaNr7O-55" style="shape=image;html=1;verticalAlign=top;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;imageAspect=0;aspect=fixed;image=https://icons.diagrams.net/icon-cache1/Hosting-2687/ftp-px-png-969.png" value="File Server" vertex="1">
+        <mxCell id="CMprtpoPu1QtMEZRB6yr-25" parent="5_MwVDp4FavHJGoaNr7O-55" style="shape=image;html=1;verticalAlign=top;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;imageAspect=0;aspect=fixed;image=https://icons.diagrams.net/icon-cache1/Hosting-2687/ftp-px-png-969.png" value="Cloud Service&lt;br&gt;(NAS Server)" vertex="1">
           <mxGeometry height="80" width="80" x="180" y="41.799999999999955" as="geometry" />
         </mxCell>
         <mxCell id="CMprtpoPu1QtMEZRB6yr-26" parent="5_MwVDp4FavHJGoaNr7O-55" style="fontColor=#0066CC;verticalAlign=top;verticalLabelPosition=bottom;labelPosition=center;align=center;html=1;outlineConnect=0;fillColor=#CCCCCC;strokeColor=#6881B3;gradientColor=none;gradientDirection=north;strokeWidth=2;shape=mxgraph.networks.gamepad;" value="&lt;font style=&quot;color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;Game Server&lt;/font&gt;" vertex="1">
