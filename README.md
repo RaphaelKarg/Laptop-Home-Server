@@ -20,6 +20,7 @@
    - [3.1 Physical Network Topology](#31-physical-network-topology)
    - [3.2 Server Hardware](#32-server-hardware)
    - [3.3 Server Structure & Software](#33-server-structure--software)
+   - [3.4 Repository & Server Directory Structure](#34-repository--server-directory-structure)
 4. [Services Analysis (Implementation & Troubleshooting)](#4-services-analysis)
    - [4.1 AdGuard Home & Quad9 DoH (Security Server)](#41-adguard-home--quad9-doh)
    - [4.2 File Server, Automations & Backup Strategy](#42-file-server-automations--backup-strategy)
@@ -74,6 +75,8 @@ The implementation of this laptop-based homelab was guided by the following conc
 4. **Self-Hosted Entertainment:** Run lag-free, dedicated gaming environments (Minecraft) and media streaming platforms (Jellyfin) managed via intuitive web interfaces.
 5. **Hardware Efficiency & Resilience:** Capitalize on the laptop's built-in battery to act as an Uninterruptible Power Supply (UPS), ensuring the server remains active and safely shuts down during unexpected power outages.
 
+---
+
 ## 3. System Architecture & Infrastructure
 
 This section outlines the physical and logical layers of the homelab, detailing the network topology, the upcycled hardware acting as the core server, and the underlying software environment.
@@ -122,3 +125,25 @@ To maximize the hardware's efficiency, a "bare-metal to container" approach was 
 1. **Host Operating System:** A minimal Linux Server distribution acts as the bare-metal foundation, eliminating the overhead of a Desktop Environment (GUI).
 2. **CasaOS (The Dashboard):** Deployed on top of Linux, CasaOS serves as the central orchestration interface. It provides an elegant, web-based UI to monitor system resources and manage storage drives.
 3. **Docker Containerization:** Every service in this homelab (AdGuard, Jellyfin, Crafty, etc.) runs as an isolated Docker Container managed through CasaOS, ensuring that dependencies never conflict.
+
+### 3.4 Repository & Server Directory Structure
+
+To maintain organization and ensure the infrastructure is easily reproducible, the repository and server configuration files are structured as follows:
+
+```text
+Laptop-Home-Server/
+├── docker-compose/              # 🐳 Server-side Docker Compose files for deployments
+│   ├── adguard-home/            # DNS security configuration
+│   ├── jellyfin/                # Media server volume mappings
+│   ├── crafty-controller/       # Minecraft server management configs
+│   └── netalertx/               # Network monitoring setup
+├── scripts/                     # ⚙️ Custom automation & maintenance scripts
+│   └── auto_backup.sh           # Script syncing NAS data to the 1TB WD Elements
+├── images/                      # 🖼️ Assets for GitHub documentation
+│   ├── casaos_dashboard.png
+│   ├── topology_Diagram.drawio
+│   ├── topology_Diagram.png
+│   └── topology_Diagram_with_grid.png
+├── .gitattributes               # Git configuration
+├── LICENSE                      # Open Source License
+└── README.md                    # This master documentation file
