@@ -27,7 +27,6 @@
    - [4.4 Media Server (Jellyfin)](#44-media-server-jellyfin)
    - [4.5 Tailscale (Mesh VPN)](#45-tailscale-mesh-vpn)
    - [4.6 NetAlertX (Network Monitoring)](#46-netalertx-network-monitoring)
-   - [4.7 Netlify Dashboard](#47-netlify-dashboard)
 5. [Future Expansions](#5-future-expansions)
 6. [Conclusions](#6-conclusions)
 
@@ -35,7 +34,7 @@
 
 ## 1. Abstract
 
-This project presents the architecture, deployment, and documentation of a comprehensive, self-hosted **Homelab** tailored specifically for my large family residence. Designed to achieve digital sovereignty and complete independence from commercial public clouds (*De-Clouding*), the system is built to facilitate the everyday digital needs of the household, offering easy data management, robust security, and centralized entertainment.
+This project presents the architecture, deployment, and documentation of a comprehensive, self-hosted **Homelab** tailored specifically for a large family residence. Designed to achieve digital sovereignty and complete independence from commercial public clouds (*De-Clouding*), the system is built to facilitate the everyday digital needs of the household, offering easy data management, robust security, and centralized entertainment.
 
 By upcycling an older personal laptop that was about to be retired following a hardware upgrade—giving it a second life and preventing e-waste, while inherently taking advantage of its built-in battery as an Uninterruptible Power Supply (UPS)—this initiative establishes a robust, highly available, and cost-effective private cloud ecosystem. The infrastructure is powered by a **Linux Server** environment and managed through the **CasaOS** platform, utilizing **Docker containerization** for isolated, scalable, and efficient service deployment.
 
@@ -46,7 +45,7 @@ The architecture is built upon four foundational pillars:
 * **🌍 Secure Remote Access (Zero-Trust):** Eliminating the risks of traditional port forwarding by utilizing **Tailscale** (Mesh VPN) for encrypted remote access and management—allowing family members to safely connect to home services from anywhere—and **Playit.gg** (Reverse Tunneling) to safely expose local game servers.
 * **🎮 Entertainment Hub:** Self-hosting a centralized media library for family movie nights via **Jellyfin** (Media Server) and managing a dedicated Minecraft Game Server for recreation through the **Crafty Controller** web interface.
 
-Ultimately, this homelab serves as a centralized hub—indexed by a custom static dashboard hosted on **Netlify**—demonstrating how enterprise-grade network management, stringent data privacy, and diverse digital services can be successfully consolidated to elevate the digital lifestyle of a modern household.
+Ultimately, this homelab serves as a centralized hub demonstrating how enterprise-grade network management, stringent data privacy, and diverse digital services can be successfully consolidated to elevate the digital lifestyle of a modern household.
 
 ---
 
@@ -74,3 +73,48 @@ The implementation of this laptop-based homelab was guided by the following conc
 3. **Zero-Trust Remote Access:** Establish a secure, encrypted tunnel to the local network from anywhere in the world, completely eliminating the need for vulnerable port forwarding.
 4. **Self-Hosted Entertainment:** Run lag-free, dedicated gaming environments (Minecraft) and media streaming platforms (Jellyfin) managed via intuitive web interfaces.
 5. **Hardware Efficiency & Resilience:** Capitalize on the laptop's built-in battery to act as an Uninterruptible Power Supply (UPS), ensuring the server remains active and safely shuts down during unexpected power outages.
+
+## 3. System Architecture & Infrastructure
+
+This section outlines the physical and logical layers of the homelab, detailing the network topology, the upcycled hardware acting as the core server, and the underlying software environment.
+
+### 3.1 Physical Network Topology
+
+The network is designed to support a large household (6 individuals) with numerous concurrent devices, ensuring high throughput, minimal latency, and future scalability. The foundation of the external connection is a Fiber-to-the-Home (FTTH) line providing speeds of **1000/500 Mbps**.
+
+![Network Topology Architecture](./images/topology.png)
+*(Figure: Logical and Physical Flow of the Homelab Environment)*
+
+**Core Networking Components:**
+* **ISP Router (Gateway):** A Sercomm Speedport Plus 2 (Wi-Fi 6 certified) serves as the primary gateway to the WAN. It handles the wireless connectivity for the household's mobile devices (smartphones, tablets, and a smart TV).
+* **Core Switch:** A **TP-Link TL-SG1016PE v3 (16-Port Gigabit PoE+)**. This switch is strategically chosen and housed within a 19-inch rack for optimal cable management and airflow. The Power over Ethernet (PoE+) capability and the high port count provide massive scalability for future projects (e.g., dedicated Access Points or IP Cameras) without needing separate power adapters.
+* **Cabling:** All hardwired connections utilize **Lanberg S/FTP Cat.6a** cables. The Shielded Foiled Twisted Pair (S/FTP) construction eliminates electromagnetic interference (EMI/Crosstalk), while the Cat.6a standard ensures the network can effortlessly handle current 1Gbps traffic and is future-proofed for 10Gbps speeds.
+
+**Connected Local Hosts:**
+* **Wired (Ethernet via Switch):** 2x Desktop PCs, 1x Laptop, and the central Homelab Server.
+* **Wireless (Wi-Fi 6 via Router):** 1x Smart TV, 2x Tablets, and 4-5 Smartphones.
+
+*Security Note: All critical infrastructure devices (Router, Server, Switch) are assigned static local IP addresses (e.g., `192.168.1.X`) to ensure reliable DNS routing and container communication, while DHCP is strictly reserved for client devices.*
+
+### 3.2 Server Hardware
+
+The core of the homelab is built upon a repurposed gaming laptop. This upcycling strategy not only breathes new life into aging hardware but provides a massive advantage for server hosting: the internal 6-Cell battery acts as a built-in Uninterruptible Power Supply (UPS), guaranteeing graceful shutdowns during power outages.
+
+**System Specifications: MSI GL62M 7REX**
+| Hardware Component | Specifications / Model | Details & Purpose |
+| :--- | :--- | :--- |
+| **CPU** | Intel Core i7-7700HQ @ 2.80GHz | 7th Gen (Kaby Lake), 4 Cores / 8 Threads. Provides excellent multi-tasking for concurrent Docker containers. |
+| **RAM** | 8GB DDR4 | 1x 8GB installed (1 slot free, upgradeable to 32GB). Sufficient for the current container load. |
+| **OS Drive (Disk 1)** | 120GB SSD (Kingston RBUSNS8) | M.2 SSD. Houses the Linux OS and the Docker engine for rapid boot times and fast container execution. |
+| **Storage Drive (Disk 2)**| 1TB HDD (Seagate ST1000LM048) | 2.5" SATA. Used as the primary mass storage for the NAS, Nextcloud data, and automated backups. |
+| **Power Supply** | AC Adapter (150W) & Li-Ion Battery | 6-Cell (41 Whr) battery ensuring 100% uptime during short electrical grid fluctuations. |
+
+*(Note: The dedicated NVIDIA GTX 1050 Ti is currently inactive to minimize power consumption, relying on the integrated Intel HD Graphics 630 for baseline display output).*
+
+### 3.3 Server Structure & Software
+
+To maximize the hardware's efficiency, a "bare-metal to container" approach was adopted.
+
+1. **Host Operating System:** A minimal Linux Server distribution acts as the bare-metal foundation. This eliminates the overhead of a Desktop Environment (GUI), leaving 100% of the CPU and RAM available for the hosted services.
+2. **CasaOS (The Dashboard):** Deployed on top of Linux, CasaOS serves as the central orchestration interface. It provides an elegant, web-based UI to monitor system resources (CPU temps, RAM usage, network I/O) and manage storage drives effortlessly.
+3. **Docker Containerization:** Every single service in this homelab (AdGuard, Jellyfin, Crafty, etc.) runs as an isolated Docker Container managed through CasaOS. This structural choice ensures that if one service crashes or requires an update, it does not affect the stability of the host OS or any other running application.
