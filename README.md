@@ -116,7 +116,7 @@ The core of the homelab is built upon a repurposed gaming laptop. This upcycling
 
 To maximize the hardware's efficiency, a "bare-metal to container" approach was adopted.
 
-![CasaOS Dashboard](./images/casaos_dashboard.jpg)
+![CasaOS Dashboard](./images/casaos_dashboard.png)
 > *Figure 2: The CasaOS Web Interface managing the system resources and Docker Containers.*
 
 1. **Host Operating System:** A minimal Linux Server distribution acts as the bare-metal foundation, eliminating the overhead of a Desktop Environment (GUI).
