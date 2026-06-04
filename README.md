@@ -82,39 +82,43 @@ This section outlines the physical and logical layers of the homelab, detailing 
 
 The network is designed to support a large household (6 individuals) with numerous concurrent devices, ensuring high throughput, minimal latency, and future scalability. The foundation of the external connection is a Fiber-to-the-Home (FTTH) line providing speeds of **1000/500 Mbps**.
 
-![Network Topology Architecture](./images/topology.png)
-*(Figure: Logical and Physical Flow of the Homelab Environment)*
+![Network Topology Architecture](./images/topology_Diagram_with_grid.png)
+> *Figure 1: Logical and Physical Flow of the Homelab Environment*
 
-**Core Networking Components:**
-* **ISP Router (Gateway):** A Sercomm Speedport Plus 2 (Wi-Fi 6 certified) serves as the primary gateway to the WAN. It handles the wireless connectivity for the household's mobile devices (smartphones, tablets, and a smart TV).
-* **Core Switch:** A **TP-Link TL-SG1016PE v3 (16-Port Gigabit PoE+)**. This switch is strategically chosen and housed within a 19-inch rack for optimal cable management and airflow. The Power over Ethernet (PoE+) capability and the high port count provide massive scalability for future projects (e.g., dedicated Access Points or IP Cameras) without needing separate power adapters.
-* **Cabling:** All hardwired connections utilize **Lanberg S/FTP Cat.6a** cables. The Shielded Foiled Twisted Pair (S/FTP) construction eliminates electromagnetic interference (EMI/Crosstalk), while the Cat.6a standard ensures the network can effortlessly handle current 1Gbps traffic and is future-proofed for 10Gbps speeds.
+**Core Networking Components & IP Allocation:**
+To maintain network stability and avoid conflicts, a strict IP allocation strategy is enforced at the router level.
+* **ISP Router (Gateway - `192.168.1.1`):** A Sercomm Speedport Plus 2 (Wi-Fi 6 certified) serves as the primary gateway to the WAN.
+* **Core Switch:** A **TP-Link TL-SG1016PE v3 (16-Port Gigabit PoE+)**. Housed within a 19-inch rack for optimal cable management. The Power over Ethernet (PoE+) capability and high port count provide massive scalability for future projects (e.g., Access Points).
+* **DHCP vs. Static Pool:** The IP range `192.168.1.1` to `192.168.1.10` is strictly reserved for **Static IP assignments** (e.g., the Laptop Server is pinned to `192.168.1.2`). The remaining pool (`192.168.1.11` to `192.168.1.254`) is handled by the DHCP server for dynamic allocation to client devices.
+* **Cabling:** All hardwired connections utilize **Lanberg S/FTP Cat.6a** cables. The Shielded Foiled Twisted Pair (S/FTP) construction eliminates electromagnetic interference, effortlessly handling 1Gbps traffic while being future-proofed for 10Gbps.
 
 **Connected Local Hosts:**
-* **Wired (Ethernet via Switch):** 2x Desktop PCs, 1x Laptop, and the central Homelab Server.
+* **Wired (Ethernet via Switch):** 2x Desktop PCs, 1x Laptop, and the central Homelab Server (`192.168.1.2`).
 * **Wireless (Wi-Fi 6 via Router):** 1x Smart TV, 2x Tablets, and 4-5 Smartphones.
-
-*Security Note: All critical infrastructure devices (Router, Server, Switch) are assigned static local IP addresses (e.g., `192.168.1.X`) to ensure reliable DNS routing and container communication, while DHCP is strictly reserved for client devices.*
 
 ### 3.2 Server Hardware
 
-The core of the homelab is built upon a repurposed gaming laptop. This upcycling strategy not only breathes new life into aging hardware but provides a massive advantage for server hosting: the internal 6-Cell battery acts as a built-in Uninterruptible Power Supply (UPS), guaranteeing graceful shutdowns during power outages.
+The core of the homelab is built upon a repurposed gaming laptop. This upcycling strategy provides a massive advantage for server hosting: the internal 6-Cell battery acts as a built-in Uninterruptible Power Supply (UPS), guaranteeing graceful shutdowns during power outages.
 
-**System Specifications: MSI GL62M 7REX**
+**System Specifications: MSI GL62M 7REX & External Storage**
 | Hardware Component | Specifications / Model | Details & Purpose |
 | :--- | :--- | :--- |
 | **CPU** | Intel Core i7-7700HQ @ 2.80GHz | 7th Gen (Kaby Lake), 4 Cores / 8 Threads. Provides excellent multi-tasking for concurrent Docker containers. |
 | **RAM** | 8GB DDR4 | 1x 8GB installed (1 slot free, upgradeable to 32GB). Sufficient for the current container load. |
-| **OS Drive (Disk 1)** | 120GB SSD (Kingston RBUSNS8) | M.2 SSD. Houses the Linux OS and the Docker engine for rapid boot times and fast container execution. |
-| **Storage Drive (Disk 2)**| 1TB HDD (Seagate ST1000LM048) | 2.5" SATA. Used as the primary mass storage for the NAS, Nextcloud data, and automated backups. |
+| **OS Drive (Disk 1)** | 120GB SSD (Kingston RBUSNS8) | M.2 SSD. Houses the Linux OS and the Docker engine for rapid boot times. |
+| **Storage Drive (Disk 2)**| 1TB HDD (Seagate ST1000LM048) | 2.5" SATA. Primary internal mass storage for the NAS and media files. |
+| **Backup Drive (External)**| 1TB HDD (WD Elements) | USB 3.0 External Drive. Dedicated destination for automated scripts and system backups, ensuring critical data redundancy outside the internal chassis. |
 | **Power Supply** | AC Adapter (150W) & Li-Ion Battery | 6-Cell (41 Whr) battery ensuring 100% uptime during short electrical grid fluctuations. |
 
-*(Note: The dedicated NVIDIA GTX 1050 Ti is currently inactive to minimize power consumption, relying on the integrated Intel HD Graphics 630 for baseline display output).*
+*(Note: The dedicated NVIDIA GTX 1050 Ti is currently inactive to minimize power consumption, relying solely on the integrated Intel HD Graphics 630).*
 
 ### 3.3 Server Structure & Software
 
 To maximize the hardware's efficiency, a "bare-metal to container" approach was adopted.
 
-1. **Host Operating System:** A minimal Linux Server distribution acts as the bare-metal foundation. This eliminates the overhead of a Desktop Environment (GUI), leaving 100% of the CPU and RAM available for the hosted services.
-2. **CasaOS (The Dashboard):** Deployed on top of Linux, CasaOS serves as the central orchestration interface. It provides an elegant, web-based UI to monitor system resources (CPU temps, RAM usage, network I/O) and manage storage drives effortlessly.
-3. **Docker Containerization:** Every single service in this homelab (AdGuard, Jellyfin, Crafty, etc.) runs as an isolated Docker Container managed through CasaOS. This structural choice ensures that if one service crashes or requires an update, it does not affect the stability of the host OS or any other running application.
+![CasaOS Dashboard](./images/casaos_dashboard.jpg)
+> *Figure 2: The CasaOS Web Interface managing the system resources and Docker Containers.*
+
+1. **Host Operating System:** A minimal Linux Server distribution acts as the bare-metal foundation, eliminating the overhead of a Desktop Environment (GUI).
+2. **CasaOS (The Dashboard):** Deployed on top of Linux, CasaOS serves as the central orchestration interface. It provides an elegant, web-based UI to monitor system resources and manage storage drives.
+3. **Docker Containerization:** Every service in this homelab (AdGuard, Jellyfin, Crafty, etc.) runs as an isolated Docker Container managed through CasaOS, ensuring that dependencies never conflict.
