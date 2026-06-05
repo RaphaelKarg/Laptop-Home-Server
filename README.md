@@ -158,3 +158,20 @@ Laptop-Home-Server/
 ├── .gitattributes               # Git configuration
 ├── LICENSE                      # Open Source License
 └── README.md                    # This master documentation file
+```
+
+---
+
+## 4. Services Analysis (Implementation & Troubleshooting)
+
+This section delves into the core software services that transform the physical hardware into a fully functional, self-hosted cloud environment. 
+
+To achieve maximum stability and modularity, a strict **Container-First** philosophy was adopted. Instead of installing software directly onto the host operating system, every service is deployed as an isolated **Docker Container** and managed through the **CasaOS** interface. 
+
+This architectural choice provides several critical advantages for a homelab environment:
+* **Isolation & Stability:** Applications run in their own secure environments with bundled dependencies. If one service encounters an error or crashes, the host operating system and other running containers remain completely unaffected.
+* **Persistent Data Management:** Configuration files and user data are mapped to specific directories on the physical storage drives (Docker Volumes). This ensures that containers can be safely updated, wiped, or recreated without any data loss.
+* **Portability & Maintenance:** The entire infrastructure is reproducible. Updating a service is as simple as pulling the latest Docker image, minimizing downtime and maintenance overhead.
+
+In the following subsections, each core service is analyzed individually. The documentation covers the specific **Implementation** strategy (deployment logic, network configurations, and family use cases) along with the **Troubleshooting** steps taken to overcome technical hurdles during the initial setup process.
+```
