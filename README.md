@@ -35,7 +35,7 @@
 
 ## 1. Abstract
 
-This project presents the architecture, deployment, and documentation of a comprehensive, self-hosted **Homelab** tailored specifically for a large family residence. Designed to achieve digital sovereignty and complete independence from commercial public clouds (*De-Clouding*), the system is built to facilitate the everyday digital needs of the household, offering easy data management, robust security, and centralized entertainment.
+This project presents the architecture, deployment, and documentation of a comprehensive, self-hosted Homelab tailored specifically for my large family residence. Designed to achieve digital sovereignty and complete independence from commercial public clouds (*De-Clouding*), the system is built to facilitate the everyday digital needs of the household, offering easy data management, robust security, and centralized entertainment.
 
 By upcycling an older personal laptop that was about to be retired following a hardware upgrade—giving it a second life and preventing e-waste, while inherently taking advantage of its built-in battery as an Uninterruptible Power Supply (UPS)—this initiative establishes a robust, highly available, and cost-effective private cloud ecosystem. The infrastructure is powered by a **Linux Server** environment and managed through the **CasaOS** platform, utilizing **Docker containerization** for isolated, scalable, and efficient service deployment.
 
