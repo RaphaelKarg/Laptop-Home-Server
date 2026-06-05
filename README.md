@@ -35,16 +35,17 @@
 
 ## 1. Abstract
 
-This project presents the architecture, deployment, and documentation of a comprehensive, self-hosted Homelab tailored specifically for my large family residence. Designed to achieve digital sovereignty and complete independence from commercial public clouds (*De-Clouding*), the system is built to facilitate the everyday digital needs of the household, offering easy data management, robust security, and centralized entertainment.
+This project presents the architecture, deployment, and documentation of a comprehensive, self-hosted **Homelab** tailored specifically for my large family's residence. Designed to achieve digital sovereignty and complete independence from commercial public clouds (*De-Clouding*), the system is built to facilitate the everyday digital needs of our household, offering easy data management, robust security, and centralized entertainment.
 
 By upcycling an older personal laptop that was about to be retired following a hardware upgrade—giving it a second life and preventing e-waste, while inherently taking advantage of its built-in battery as an Uninterruptible Power Supply (UPS)—this initiative establishes a robust, highly available, and cost-effective private cloud ecosystem. The infrastructure is powered by a **Linux Server** environment and managed through the **CasaOS** platform, utilizing **Docker containerization** for isolated, scalable, and efficient service deployment.
 
-The architecture is built upon four foundational pillars:
+The architecture is built upon five foundational pillars:
 
-* **🛡️ Security & Safe Browsing:** Implementing network-wide protection against ads, trackers, and malware via **AdGuard Home** to ensure a highly secure internet surfing experience for all family members, routing requests through encrypted DNS (DoH/DNSSEC) via **Quad9**. **NetAlertX** acts as a continuous network scanner for intrusion detection.
+* **🛡️ Security & Safe Browsing:** Implementing network-wide protection against ads, trackers, and malware via **AdGuard Home** to ensure a highly secure internet surfing experience for all family members, routing requests through encrypted DNS (DoH/DNSSEC) via **Quad9**.
 * **📂 Data Management & Family Sharing:** A centralized **Local File Server (NAS)** that provides the entire family with effortless access, sharing, and management of their personal files, backed by custom scripting for automated directory backups to an external 1TB drive.
-* **🌍 Secure Remote Access (Zero-Trust):** Eliminating the risks of traditional port forwarding by utilizing **Tailscale** (Mesh VPN) for encrypted remote access and management—allowing family members to safely connect to home services from anywhere—and **Playit.gg** (Reverse Tunneling) to safely expose local game servers.
+* **🌍 Secure Remote Access (VPN):** Eliminating the risks of traditional port forwarding by utilizing **Tailscale** (Mesh VPN) for encrypted remote access and management—allowing family members to safely connect to home services from anywhere—and **Playit.gg** (Reverse Tunneling) to safely expose local game servers.
 * **🎮 Entertainment Hub:** Self-hosting a centralized media library for family movie nights via **Jellyfin** (Media Server) and managing a dedicated Minecraft Game Server for recreation through the **Crafty Controller** web interface.
+* **📡 Local Network Monitoring:** Utilizing **NetAlertX** as a continuous network scanner for intrusion detection and centralized administration of all connected devices.
 
 Ultimately, this homelab serves as a centralized hub demonstrating how enterprise-grade network management, stringent data privacy, and diverse digital services can be successfully consolidated to elevate the digital lifestyle of a modern household.
 
@@ -71,7 +72,7 @@ The implementation of this laptop-based homelab was guided by the following conc
 
 1. **Complete Data Ownership:** Deploy a reliable Local Area Network (LAN) File Server / NAS for rapid data transfer and media storage.
 2. **Network-Wide Security:** Implement a DNS-level sinkhole to block ads, malicious domains, and trackers for every device connected to the home router, while encrypting outbound DNS requests.
-3. **Zero-Trust Remote Access:** Establish a secure, encrypted tunnel to the local network from anywhere in the world, completely eliminating the need for vulnerable port forwarding.
+3. **Secure Remote Access (VPN):** Establish a secure, encrypted tunnel to the local network from anywhere in the world, eliminating the need for vulnerable port forwarding.
 4. **Self-Hosted Entertainment:** Run lag-free, dedicated gaming environments (Minecraft) and media streaming platforms (Jellyfin) managed via intuitive web interfaces.
 5. **Hardware Efficiency & Resilience:** Capitalize on the laptop's built-in battery to act as an Uninterruptible Power Supply (UPS), ensuring the server remains active and safely shuts down during unexpected power outages.
 
@@ -89,10 +90,10 @@ The network is designed to support a large household (6 individuals) with numero
 > *Figure 1: Logical and Physical Flow of the Homelab Environment*
 
 **Core Networking Components & IP Allocation:**
-To maintain network stability and avoid conflicts, a strict IP allocation strategy is enforced at the router level.
+To maintain network stability and avoid conflicts, a strict IP allocation strategy is enforced.
 * **ISP Router (Gateway - `192.168.1.1`):** A Sercomm Speedport Plus 2 (Wi-Fi 6 certified) serves as the primary gateway to the WAN.
 * **Core Switch:** A **TP-Link TL-SG1016PE v3 (16-Port Gigabit PoE+)**. Housed within a 19-inch rack for optimal cable management. The Power over Ethernet (PoE+) capability and high port count provide massive scalability for future projects (e.g., Access Points).
-* **DHCP vs. Static Pool:** The IP range `192.168.1.1` to `192.168.1.10` is strictly reserved for **Static IP assignments** (e.g., the Laptop Server is pinned to `192.168.1.2`). The remaining pool (`192.168.1.11` to `192.168.1.254`) is handled by the DHCP server for dynamic allocation to client devices.
+* **DHCP vs Static Pool:** Handled directly by the ISP router's built-in DHCP server, the IP range `192.168.1.1` to `192.168.1.10` is strictly reserved for **Static IP assignments** (e.g., the Laptop Server is pinned to `192.168.1.2`). The remaining pool (`192.168.1.11` to `192.168.1.254`) is dynamically allocated to client devices.
 * **Cabling:** All hardwired connections utilize **Lanberg S/FTP Cat.6a** cables. The Shielded Foiled Twisted Pair (S/FTP) construction eliminates electromagnetic interference, effortlessly handling 1Gbps traffic while being future-proofed for 10Gbps.
 
 **Connected Local Hosts:**
@@ -103,24 +104,28 @@ To maintain network stability and avoid conflicts, a strict IP allocation strate
 
 The core of the homelab is built upon a repurposed gaming laptop. This upcycling strategy provides a massive advantage for server hosting: the internal 6-Cell battery acts as a built-in Uninterruptible Power Supply (UPS), guaranteeing graceful shutdowns during power outages.
 
+![Physical Server Setup](./images/physical_server1.png)(./images/physical_server2.png)
+> *Figure 2 and 3: The upcycled MSI Laptop acting as the central server, securely mounted above the 19-inch rack infrastructure.*
+
 **System Specifications: MSI GL62M 7REX & External Storage**
 | Hardware Component | Specifications / Model | Details & Purpose |
 | :--- | :--- | :--- |
 | **CPU** | Intel Core i7-7700HQ @ 2.80GHz | 7th Gen (Kaby Lake), 4 Cores / 8 Threads. Provides excellent multi-tasking for concurrent Docker containers. |
 | **RAM** | 8GB DDR4 | 1x 8GB installed (1 slot free, upgradeable to 32GB). Sufficient for the current container load. |
+| **GPU (Dedicated)** | NVIDIA GeForce GTX 1050 Ti | 2GB GDDR5. Fully active and utilized for Hardware-Accelerated Video Transcoding in Jellyfin, delivering seamless media streaming. |
 | **OS Drive (Disk 1)** | 120GB SSD (Kingston RBUSNS8) | M.2 SSD. Houses the Linux OS and the Docker engine for rapid boot times. |
 | **Storage Drive (Disk 2)**| 1TB HDD (Seagate ST1000LM048) | 2.5" SATA. Primary internal mass storage for the NAS and media files. |
 | **Backup Drive (External)**| 1TB HDD (WD Elements) | USB 3.0 External Drive. Dedicated destination for automated scripts and system backups, ensuring critical data redundancy outside the internal chassis. |
 | **Power Supply** | AC Adapter (150W) & Li-Ion Battery | 6-Cell (41 Whr) battery ensuring 100% uptime during short electrical grid fluctuations. |
 
-*(Note: The dedicated NVIDIA GTX 1050 Ti is currently inactive to minimize power consumption, relying solely on the integrated Intel HD Graphics 630).*
+*(Note: The system is configured to prioritize the dedicated NVIDIA GPU for hardware-accelerated tasks, such as real-time video transcoding, significantly offloading the CPU during high-demand media consumption).*
 
 ### 3.3 Server Structure & Software
 
 To maximize the hardware's efficiency, a "bare-metal to container" approach was adopted.
 
 ![CasaOS Dashboard](./images/casaos_dashboard.png)
-> *Figure 2: The CasaOS Web Interface managing the system resources and Docker Containers.*
+> *Figure 3: The CasaOS Web Interface managing the system resources and Docker Containers.*
 
 1. **Host Operating System:** A minimal Linux Server distribution acts as the bare-metal foundation, eliminating the overhead of a Desktop Environment (GUI).
 2. **CasaOS (The Dashboard):** Deployed on top of Linux, CasaOS serves as the central orchestration interface. It provides an elegant, web-based UI to monitor system resources and manage storage drives.
@@ -141,6 +146,7 @@ Laptop-Home-Server/
 │   └── auto_backup.sh           # Script syncing NAS data to the 1TB WD Elements
 ├── images/                      # 🖼️ Assets for GitHub documentation
 │   ├── casaos_dashboard.png
+│   ├── physical_server.jpg      # Shows the physical rack and laptop setup
 │   ├── topology_Diagram.drawio
 │   ├── topology_Diagram.png
 │   └── topology_Diagram_with_grid.png
