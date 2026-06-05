@@ -104,8 +104,12 @@ To maintain network stability and avoid conflicts, a strict IP allocation strate
 
 The core of the homelab is built upon a repurposed gaming laptop. This upcycling strategy provides a massive advantage for server hosting: the internal 6-Cell battery acts as a built-in Uninterruptible Power Supply (UPS), guaranteeing graceful shutdowns during power outages.
 
-![Physical Server Setup](./images/physical_server1.png)(./images/physical_server2.png)
-> *Figure 2 and 3: The upcycled MSI Laptop acting as the central server, securely mounted above the 19-inch rack infrastructure.*
+<p align="center">
+  <img src="./images/physical_server1.jpg" width="48%" alt="Physical Server Setup - Angle 1">
+  <img src="./images/physical_server2.jpg" width="48%" alt="Physical Server Setup - Angle 2">
+</p>
+
+> *Figure 2: The upcycled MSI Laptop acting as the central server, securely mounted above the 19-inch rack infrastructure, displaying real-time resource monitoring via terminal.*
 
 **System Specifications: MSI GL62M 7REX & External Storage**
 | Hardware Component | Specifications / Model | Details & Purpose |
@@ -145,8 +149,9 @@ Laptop-Home-Server/
 ├── scripts/                     # ⚙️ Custom automation & maintenance scripts
 │   └── auto_backup.sh           # Script syncing NAS data to the 1TB WD Elements
 ├── images/                      # 🖼️ Assets for GitHub documentation
+│   ├── 3.jpg                    # Physical rack setup (Angle 1)
+│   ├── 4.jpg                    # Physical rack setup (Angle 2)
 │   ├── casaos_dashboard.png
-│   ├── physical_server.jpg      # Shows the physical rack and laptop setup
 │   ├── topology_Diagram.drawio
 │   ├── topology_Diagram.png
 │   └── topology_Diagram_with_grid.png
