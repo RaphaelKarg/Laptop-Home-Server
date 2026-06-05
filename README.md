@@ -149,8 +149,8 @@ Laptop-Home-Server/
 ├── scripts/                     # ⚙️ Custom automation & maintenance scripts
 │   └── auto_backup.sh           # Script syncing NAS data to the 1TB WD Elements
 ├── images/                      # 🖼️ Assets for GitHub documentation
-│   ├── 3.jpg                    # Physical rack setup (Angle 1)
-│   ├── 4.jpg                    # Physical rack setup (Angle 2)
+│   ├── physical_server1.jpg     # Physical rack setup (Angle 1)
+│   ├── physical_server2.jpg     # Physical rack setup (Angle 2)
 │   ├── casaos_dashboard.png
 │   ├── topology_Diagram.drawio
 │   ├── topology_Diagram.png
