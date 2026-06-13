@@ -179,6 +179,13 @@ In the following subsections, each core service is analyzed individually. The do
 
 The foundation of the homelab's network security is **AdGuard Home**, acting as a network-wide DNS sinkhole. By pointing the ISP router's primary DHCP DNS settings to the laptop server's IP (`192.168.1.2`), every device connected to the network—from desktop PCs and smartphones to the LG WebOS Smart TV—automatically routes its DNS queries through this container. This eliminates the need to install individual ad-blockers on separate client devices.
 
+<p align="center">
+  <img src="./images/adguard_1.png" width="48%" alt="AdGuard Dashboard Top">
+  <img src="./images/adguard_2.png" width="48%" alt="AdGuard Dashboard Bottom">
+</p>
+
+> *Figure 4: The AdGuard Home Dashboard showcasing real-time statistics, upstream response times, and active Tailscale VPN clients (`100.x.x.x`).*
+
 **1. Docker Deployment via CasaOS**
 The service is deployed using the official `adguard/adguardhome:v0.107.76` image running on a `bridge` network. To ensure stability and avoid port conflicts, the container is meticulously configured:
 * **Port Mappings:** The standard DNS port `53` (TCP/UDP) is exposed directly to the host to accept local network queries. The Web UI is mapped to port `3001` (Host) -> `80` (Container) to prevent overlap with other web services. Ports `853` and `784` are also exposed for DNS-over-TLS and DNS-over-QUIC capabilities.
@@ -194,7 +201,10 @@ A primary goal of this homelab is ISP independence and absolute data privacy. St
 * **DNSSEC Enforced:** Domain Name System Security Extensions (DNSSEC) is strictly enforced to prevent DNS spoofing and cache-poisoning attacks.
 
 **3. Comprehensive Filtering Architecture**
-The filtering engine is highly customized, successfully intercepting and neutralizing approximately **29% of all network traffic** at the DNS level. The blocklist matrix relies on a combination of community-driven lists (updated automatically every 12 hours) and native security features:
+The filtering engine is highly customized, successfully intercepting and neutralizing approximately **28% of all network traffic** at the DNS level. The blocklist matrix relies on a combination of community-driven lists (updated automatically every 12 hours) and native security features:
+
+![AdGuard Blocklists](./images/adguard_3.png)
+> *Figure 5: The active DNS blocklists, strategically selected to neutralize ads, trackers, and malware without breaking core web functionality.*
 
 * **General Ad & Tracker Blocking:**
   * **AdGuard DNS Filter:** The core filter, optimized specifically for DNS-level blocking of ads and trackers.
