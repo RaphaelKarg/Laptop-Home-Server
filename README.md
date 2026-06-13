@@ -180,8 +180,8 @@ In the following subsections, each core service is analyzed individually. The do
 The foundation of the homelab's network security is **AdGuard Home**, acting as a network-wide DNS sinkhole. By pointing the ISP router's primary DHCP DNS settings to the laptop server's IP (`192.168.1.2`), every device connected to the network—from desktop PCs and smartphones to the LG WebOS Smart TV—automatically routes its DNS queries through this container. This eliminates the need to install individual ad-blockers on separate client devices.
 
 <p align="center">
-  <img src="./images/adguard_1.png" width="48%" alt="AdGuard Dashboard Top">
-  <img src="./images/adguard_2.png" width="48%" alt="AdGuard Dashboard Bottom">
+  <img src="./images/adguard_1.png" height="430" alt="AdGuard Dashboard Top">
+  <img src="./images/adguard_2.png" height="430" alt="AdGuard Dashboard Bottom">
 </p>
 
 > *Figure 4: The AdGuard Home Dashboard showcasing real-time statistics, upstream response times, and active Tailscale VPN clients (`100.x.x.x`).*
@@ -203,7 +203,10 @@ A primary goal of this homelab is ISP independence and absolute data privacy. St
 **3. Comprehensive Filtering Architecture**
 The filtering engine is highly customized, successfully intercepting and neutralizing approximately **28% of all network traffic** at the DNS level. The blocklist matrix relies on a combination of community-driven lists (updated automatically every 12 hours) and native security features:
 
-![AdGuard Blocklists](./images/adguard_3.png)
+<p align="center">
+  <img src="./images/adguard_3.png" width="75%" alt="AdGuard Blocklists">
+</p>
+
 > *Figure 5: The active DNS blocklists, strategically selected to neutralize ads, trackers, and malware without breaking core web functionality.*
 
 * **General Ad & Tracker Blocking:**
@@ -230,3 +233,14 @@ By pointing the reverse DNS resolver directly to the ISP Router (`192.168.1.1`),
 
 **5. Performance Optimization**
 To further enhance network speed, **Optimistic Caching** is enabled alongside a 4MB dedicated DNS cache. This allows the server to serve expired cache entries instantly to the user while silently refreshing the domain TTL in the background, making web browsing feel instantaneous for the entire household.
+
+#### Troubleshooting & Network Conflicts
+During the initial deployment and stabilization phase, several core networking conflicts were identified and resolved to ensure seamless operation:
+
+* **Port 53 Allocation Conflict:** The host operating system (Ubuntu) had port `53` bound to the internal `systemd-resolved` daemon, preventing the Docker container from listening for DNS queries. The daemon was permanently disabled via the terminal (`sudo systemctl disable systemd-resolved`), and the CasaOS mapping was corrected to route Host port `53` directly to Container port `53`.
+* **Host DNS Resolution Failure:** Disabling the default DNS stub left the bare-metal OS without internet resolution capabilities (`DNS_PROBE_POSSIBLE`). This was fixed by manually overriding the `/etc/resolv.conf` file to point the host's nameserver directly to `127.0.0.1` (the local container).
+* **Web UI Port Mismatch:** Following the setup wizard, the container's internal web server automatically migrated from port `3000` to port `80`, resulting in a "Connection Refused" error. The CasaOS configuration was updated to map Host port `3001` to Container port `80`, restoring dashboard access.
+* **The IPv6 Bypass Leak:** Windows client devices were bypassing the AdGuard sinkhole by prioritizing IPv6 DNS addresses automatically provided by the ISP Router. This leak was plugged by disabling IPv6 on the client network adapters and enforcing the "Disable resolving of IPv6 addresses" rule within AdGuard, forcing all traffic through the controlled IPv4 tunnel.
+* **Browser-Level DoH Conflicts:** Client browsers with "Secure DNS" enabled internally (e.g., Chromium browsers routing to Cloudflare) were bypassing the local network entirely. This was resolved by disabling browser-level secure DNS, thereby centralizing the DoH encryption process at the AdGuard server level to achieve both privacy and network-wide ad-blocking.
+* **Reverse DNS Anomalies:** Public IPs (such as Google's `8.8.8.8`) were polluting the local query logs because AdGuard defaulted to public servers for internal Reverse DNS lookups. This was rectified by explicitly assigning the ISP Router (`192.168.1.1`) as the sole Private Reverse DNS resolver, ensuring accurate identification of local hostnames.
+* **Upstream Latency Spikes:** Initial configurations relying on a single upstream provider (Cloudflare) via Load-Balancing resulted in sluggish response times (~199ms). Introducing Quad9 as an additional upstream and switching to a "Parallel requests" algorithm drastically reduced average lookup times to ~42ms.
