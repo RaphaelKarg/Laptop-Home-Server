@@ -175,7 +175,6 @@ This architectural choice provides several critical advantages for a homelab env
 
 In the following subsections, each core service is analyzed individually. The documentation covers the specific **Implementation** strategy (deployment logic, network configurations, and family use cases) along with the **Troubleshooting** steps taken to overcome technical hurdles during the initial setup process.
 
-
 ### 4.1 AdGuard Home & Quad9 DoH (Security Server)
 
 The foundation of the homelab's network security is **AdGuard Home**, acting as a network-wide DNS sinkhole. By pointing the ISP router's primary DHCP DNS settings to the laptop server's IP (`192.168.1.2`), every device connected to the network—from desktop PCs and smartphones to the LG WebOS Smart TV—automatically routes its DNS queries through this container. This eliminates the need to install individual ad-blockers on separate client devices.
@@ -186,24 +185,37 @@ The service is deployed using the official `adguard/adguardhome:v0.107.76` image
 * **Persistent Volumes:** Critical configuration and working directories are mapped to `/DATA/AppData/adguard-home/conf` and `/opt/adguardhome/work`. This ensures that custom filters, logs, and statistical data (set to a 90-day log retention and 24-hour active statistic retention) survive container reboots and image updates.
 * **Resource Allocation:** The container is set to "High" CPU shares with an "unless-stopped" restart policy, guaranteeing maximum availability as a critical network component.
 
-**2. Upstream DNS & Privacy (Quad9 DoH)**
-A primary goal of this homelab is ISP independence and data privacy. Standard DNS queries are sent in plain text, making them visible to Internet Service Providers. To solve this, AdGuard Home is configured to use **DNS-over-HTTPS (DoH)**.
+**2. Upstream DNS, Privacy & Redundancy**
+A primary goal of this homelab is ISP independence and absolute data privacy. Standard DNS queries are sent in plain text, making them visible to Internet Service Providers. To solve this, AdGuard Home is configured to use **DNS-over-HTTPS (DoH)** with a highly redundant architecture:
 * **Primary Upstream:** All outbound queries are encrypted and routed to `https://dns.quad9.net/dns-query` (Quad9). Quad9 was selected for its strict privacy policies and built-in threat intelligence against malware domains.
-* **Fallback Upstream:** `https://dns.cloudflare.com/dns-query` acts as a rapid fallback to ensure zero downtime if Quad9 experiences latency.
+* **Fallback Strategy:** To ensure zero network downtime in the event of a Quad9 outage, `https://dns.cloudflare.com/dns-query` is configured as a dedicated Fallback DNS server. 
+* **Bootstrap DNS Resolvers:** To prevent the "chicken-and-egg" problem of resolving the DoH server hostnames (`dns.quad9.net` and `dns.cloudflare.com`) before encrypted DNS is established, reliable Bootstrap IPs are defined (`9.9.9.9`, `149.112.112.112`, and IPv6 equivalents).
 * **Routing Strategy:** The "Parallel Requests" load-balancing algorithm is enabled. AdGuard queries all configured upstreams simultaneously and uses the fastest response, dramatically reducing DNS resolution times.
-* **Bootstrap DNS & DNSSEC:** Bootstrap IPs (`9.9.9.9`, `149.112.112.112`) are utilized to resolve the DoH endpoints initially. Additionally, **DNSSEC** (Domain Name System Security Extensions) is strictly enforced to prevent DNS spoofing and cache-poisoning attacks.
+* **DNSSEC Enforced:** Domain Name System Security Extensions (DNSSEC) is strictly enforced to prevent DNS spoofing and cache-poisoning attacks.
 
-**3. Advanced Filtering & Blocklists**
-The filtering engine is highly customized, successfully intercepting and neutralizing approximately **29% of all network traffic** at the DNS level before it even enters the local network. 
-The blocklist matrix integrates multiple community-driven lists updated every 12 hours, including:
-* *OISD Blocklist Small* & *HaGeZi's Normal Blocklist* for aggressive ad and tracker blocking with minimal false positives.
-* *Steven Black's List* and *AdAway Default Blocklist*.
-* *Phishing & Malicious URL Blocklists* to protect vulnerable network clients.
-* *Greek AdBlock Filter* specifically tailored for local/regional tracking domains.
-* AdGuard's built-in Browsing Security web service provides real-time checks against known malicious domain hashes.
+**3. Comprehensive Filtering Architecture**
+The filtering engine is highly customized, successfully intercepting and neutralizing approximately **29% of all network traffic** at the DNS level. The blocklist matrix relies on a combination of community-driven lists (updated automatically every 12 hours) and native security features:
+
+* **General Ad & Tracker Blocking:**
+  * **AdGuard DNS Filter:** The core filter, optimized specifically for DNS-level blocking of ads and trackers.
+  * **OISD Blocklist Small:** A highly curated, "set-and-forget" list that aggressively blocks ads and telemetry with virtually zero false positives.
+  * **HaGeZi's Normal Blocklist:** An excellent, balanced list targeting advertising, tracking, and metrics domains, designed to clean up the internet experience without breaking legitimate web functionality.
+  * **AdAway Default Blocklist:** A mobile-focused blocklist, crucial for stopping in-app advertisements and analytics tracking on family smartphones and tablets.
+  * **Steven Black's List:** A legendary, consolidated hosts file that blocks a massive array of adware and malware domains.
+
+* **Specialized & Regional Filtering:**
+  * **Perflyst and Dandelion Sprout's Smart-TV Blocklist:** Specifically chosen to combat the aggressive telemetry and built-in advertising found in modern Smart TVs (like the household's LG WebOS TV).
+  * **Greek AdBlock Filter:** A regional blocklist tailored to eliminate local advertisements and trackers specific to the Greek webspace.
+
+* **Malware, Phishing & Content Protection:**
+  * **uBlock filters – Badware risks:** Blocks domains known to host or distribute badware/malware.
+  * **Phishing URL Blocklist (PhishTank):** Intercepts requests to known phishing sites aiming to steal credentials.
+  * **Malicious URL Blocklist (URLHaus):** Blocks domains associated with malware distribution and botnet command-and-control servers.
+  * **AdGuard Browsing Security Web Service:** Actively enabled. AdGuard checks domain hashes against a real-time, privacy-friendly API to block zero-day malicious domains before the static lists can update.
+  * **Enforced Safe Search:** To ensure a family-friendly environment, Safe Search is strictly enforced at the network level across all major search engines (Google, Bing, DuckDuckGo, YouTube, Yandex, etc.), preventing explicit content from appearing in search results.
 
 **4. Local Network Resolution (Reverse DNS)**
-A common issue in containerized DNS servers is that client requests appear to originate from the Docker Gateway gateway or present as raw IP addresses, making monitoring difficult. This was resolved by enabling **Private Reverse DNS Resolvers**. 
+A common issue in containerized DNS servers is that client requests appear to originate from the Docker gateway or present as raw IP addresses, making monitoring difficult. This was resolved by enabling **Private Reverse DNS Resolvers**. 
 By pointing the reverse DNS resolver directly to the ISP Router (`192.168.1.1`), AdGuard successfully performs Reverse Resolving of clients' IP addresses. This allows the dashboard to correctly identify internal hostnames (e.g., `LGwebOSTV.home` or `DESKTOP-5Q3AJKM.home`), as well as external devices tunneling in via the Tailscale VPN subnet (`100.x.x.x`).
 
 **5. Performance Optimization**
