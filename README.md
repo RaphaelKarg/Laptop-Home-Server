@@ -244,3 +244,58 @@ During the initial deployment and stabilization phase, several core networking c
 * **Browser-Level DoH Conflicts:** Client browsers with "Secure DNS" enabled internally (e.g., Chromium browsers routing to Cloudflare) were bypassing the local network entirely. This was resolved by disabling browser-level secure DNS, thereby centralizing the DoH encryption process at the AdGuard server level to achieve both privacy and network-wide ad-blocking.
 * **Reverse DNS Anomalies:** Public IPs (such as Google's `8.8.8.8`) were polluting the local query logs because AdGuard defaulted to public servers for internal Reverse DNS lookups. This was rectified by explicitly assigning the ISP Router (`192.168.1.1`) as the sole Private Reverse DNS resolver, ensuring accurate identification of local hostnames.
 * **Upstream Latency Spikes:** Initial configurations relying on a single upstream provider (Cloudflare) via Load-Balancing resulted in sluggish response times (~199ms). Introducing Quad9 as an additional upstream and switching to a "Parallel requests" algorithm drastically reduced average lookup times to ~42ms.
+
+### 4.2 File Server, Automations & Backup Strategy (NAS)
+
+The file management architecture transcends a simple Network Attached Storage (NAS) setup, functioning as a fully automated, **Zero Trust Private Cloud**. It ensures strict user isolation, automated data lifecycle management, and a robust backup strategy utilizing an external 1TB USB 3.0 drive.
+
+**1. File System & Storage Preparation**
+While Linux supports NTFS, the external 1TB backup drive (`Storage2`) was deliberately formatted to **EXT4** via the CasaOS Storage Manager. NTFS lacks native support for Linux file ownership and permissions, which could cause critical access errors for background services and Cron jobs. EXT4 guarantees maximum throughput, stability, and absolute compatibility with the Linux ecosystem.
+
+<p align="center">
+  <img src="./images/file_server4.png" width="75%" alt="CasaOS File Management Interface">
+</p>
+
+> *Figure 6: The CasaOS interface displaying the internal storage structure and the isolated `BACKUP FILES` directory.*
+
+**2. Access Control & Samba Configuration (Zero Trust Local Access)**
+To enforce strict privacy among family members, the default CasaOS UI sharing mechanisms were bypassed in favor of a hardcoded `/etc/samba/smb.conf` file.
+
+* **System-Level User Security:** To protect the server from Local Privilege Escalation exploits (such as Linux kernel Use-After-Free CVEs), users were created explicitly without shell access using `sudo useradd -M -s /sbin/nologin <user>`. This ensures family members can authenticate to the SMB share but cannot open an SSH terminal or execute malicious code. Passwords were independently set via `sudo smbpasswd -a <user>`.
+* **Samba Isolation:** The `smb.conf` was configured to restrict access. Personal directories (e.g., `RAFAIL`, `CHRISTINA`) are locked behind the `valid users` directive. Only the `COMMON (SHARED)` directory allows multi-user read/write access for easy file exchange.
+
+<p align="center">
+  <img src="./images/file_server2.png" height="320" style="object-fit: cover;" alt="SMB Folder Structure">
+  <img src="./images/file_server3.png" height="320" style="object-fit: cover;" alt="Windows Security Credentials">
+</p>
+
+> *Figure 7: The strict, user-isolated Samba directory structure alongside the Windows Network Credentials prompt enforcing secure, authenticated access.*
+
+**3. Data Lifecycle Automations (Cron Jobs)**
+To prevent storage exhaustion and ensure data redundancy, the system relies on carefully scheduled Cron jobs, split between the Root and User crontabs. The scheduling utilizes the "Maintenance Window" (04:00 - 06:00 AM) to avoid network congestion.
+
+* **System Cleanup (Root):** Runs every Sunday at 04:30 AM to remove obsolete packages and clear cache, keeping the OS SSD lightweight.
+  `30 4 * * 0 apt-get autoremove -y && apt-get clean`
+* **Smart Trash for COMMON Folder (User):** Runs daily at 05:00 AM. It scans the `COMMON (SHARED)` folder and permanently deletes any file strictly older than 30 days.
+  `0 5 * * * find "/mnt/Storage1/COMMON (SHARED)/" -mindepth 1 -mtime +30 -delete`
+* **Weekly Differential Backup (User):** Runs every Sunday at 04:00 AM. Utilizing `rsync`, it creates a differential backup to the external 1TB drive. Crucially, the `--delete` flag was removed from the command. This acts as an archive: even if a file is deleted from the main laptop drive, it remains safely archived on the external drive.
+  `0 4 * * 0 rsync -av /mnt/Storage1/ "/mnt/Storage2/BACKUP FILES/"`
+* **Backup Archive Purge (User):** Runs daily at 06:00 AM. Scans only the backup version of the COMMON folder and deletes files older than 90 days, providing a 3-month safety net for accidental deletions.
+  `0 6 * * * find "/mnt/Storage2/BACKUP FILES/COMMON (SHARED)/" -mindepth 1 -mtime +90 -delete`
+
+**4. Dual Access Strategy (Smart Routing)**
+Accessing the server files is optimized through a Split Tunneling approach. Local machines feature two distinct network shortcuts:
+
+<p align="center">
+  <img src="./images/file_server1.png" width="75%" alt="Dual Access Network Shortcuts">
+</p>
+
+> *Figure 8: Smart routing execution via dedicated Windows shortcuts separating Local Area Network (LAN) traffic from encrypted Virtual Private Network (VPN) traffic.*
+
+* **LAN Shortcut (`\\192.168.1.2`):** Bypasses the VPN entirely to achieve raw 1000 Mbps Gigabit speeds when physically at home.
+* **VPN Shortcut (`\\100.x.x.x`):** Routes via the Tailscale WireGuard tunnel, offering encrypted, Zero-Trust access to the files from anywhere in the world, even on untrusted public Wi-Fi.
+
+#### Troubleshooting & Problem Resolution
+* **Physical Layer Packet Loss (VPN Instability):** The Tailscale VPN experienced frequent, random disconnects. Diagnosis revealed the TP-Link switch port indicator was Orange (10/100Mbps) instead of Green (1000Mbps). A physical contact issue in the Cat6a ethernet cable pins caused the auto-negotiation to drop to 100Mbps, resulting in micro-packet loss. While basic web browsing masked the packet loss via retransmissions, the strict WireGuard encrypted tunnel collapsed. Reseating/replacing the cable restored the Gigabit link and permanently stabilized the VPN.
+* **Windows SMB Caching ("This folder is empty" error):** When adjusting folder sharing through the CasaOS UI, the Samba daemon hierarchy broke (sharing a child directory automatically unshared the parent root). Even after manual `smb.conf` deployment, Windows client machines displayed an empty network drive. This was resolved by forcing Windows to flush its SMB cache by deleting all existing server entries in the Windows Credential Manager, executing an "Unshare" action in the CasaOS UI, and issuing `sudo systemctl restart smbd`.
+* **Cron `-mtime` Logic Misinterpretation:** An initial assumption was made that the 30-day purge script had failed because a file (`word.zip`) remained in the COMMON folder. Using the `stat "/mnt/Storage1/COMMON (SHARED)/word.zip"` command in the terminal revealed the file's `Modify` timestamp was exactly 24 days old. This proved the `find ... -mtime +30` parameter was executing flawlessly, ignoring files that had not strictly crossed the 30-day threshold. During this process, the strict case-sensitivity of Linux file paths (e.g., `word.zip` vs `WORD.ZIP`) was also reinforced.
