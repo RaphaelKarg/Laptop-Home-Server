@@ -80,13 +80,14 @@ The implementation of this laptop-based homelab was guided by the following conc
 
 ## 3. System Architecture & Infrastructure
 
-This section outlines the physical and logical layers of the homelab, detailing the network topology, the upcycled hardware acting as the core server, and the underlying software environment.
+This section outlines the physical and logical layers of the homelab, detailing the network topology, the upcycled hardware acting as the core server, the bare-metal provisioning process, and the underlying software environment.
 
 ### 3.1 Physical Network Topology
 
 The network is designed to support a large household (6 individuals) with numerous concurrent devices, ensuring high throughput, minimal latency, and future scalability. The foundation of the external connection is a Fiber-to-the-Home (FTTH) line providing speeds of **1000/500 Mbps**.
 
 ![Network Topology Architecture](./images/topology_Diagram_with_grid.png)
+
 > *Figure 1: Logical and Physical Flow of the Homelab Environment*
 
 **Core Networking Components & IP Allocation:**
@@ -112,6 +113,7 @@ The core of the homelab is built upon a repurposed gaming laptop. This upcycling
 > *Figure 2: The upcycled MSI Laptop acting as the central server, securely mounted above the 19-inch rack infrastructure, displaying real-time resource monitoring via terminal.*
 
 **System Specifications: MSI GL62M 7REX & External Storage**
+
 | Hardware Component | Specifications / Model | Details & Purpose |
 | :--- | :--- | :--- |
 | **CPU** | Intel Core i7-7700HQ @ 2.80GHz | 7th Gen (Kaby Lake), 4 Cores / 8 Threads. Provides excellent multi-tasking for concurrent Docker containers. |
@@ -124,18 +126,68 @@ The core of the homelab is built upon a repurposed gaming laptop. This upcycling
 
 *(Note: The system is configured to prioritize the dedicated NVIDIA GPU for hardware-accelerated tasks, such as real-time video transcoding, significantly offloading the CPU during high-demand media consumption).*
 
-### 3.3 Server Structure & Software
+### 3.3 Bare-Metal Provisioning & EFI Troubleshooting
 
-To maximize the hardware's efficiency, a "bare-metal to container" approach was adopted.
+To maximize hardware efficiency, a "bare-metal to container" approach was adopted, utilizing **Ubuntu Server 24.04 LTS** as the host operating system. The installation required specific BIOS adjustments and low-level EFI troubleshooting to bypass hardware-specific bugs.
 
-![CasaOS Dashboard](./images/casaos_dashboard.png)
-> *Figure 3: The CasaOS Web Interface managing the system resources and Docker Containers.*
+**1. BIOS Optimization**
+To prepare the MSI motherboard for a headless Linux environment, the BIOS was configured as follows:
+* `Boot Mode`: **UEFI** (Required for modern OS standards).
+* `Secure Boot`: **Disabled** (Crucial for allowing third-party Nvidia drivers to compile correctly in Linux).
+* `Fast Boot`: **Disabled** (Ensures reliable USB boot prioritization).
 
-1. **Host Operating System:** A minimal Linux Server distribution acts as the bare-metal foundation, eliminating the overhead of a Desktop Environment (GUI).
-2. **CasaOS (The Dashboard):** Deployed on top of Linux, CasaOS serves as the central orchestration interface. It provides an elegant, web-based UI to monitor system resources and manage storage drives.
-3. **Docker Containerization:** Every service in this homelab (AdGuard, Jellyfin, Crafty, etc.) runs as an isolated Docker Container managed through CasaOS, ensuring that dependencies never conflict.
+**2. The MSI NVRAM Bug & EFI Bypass**
+During the initial Ubuntu boot phase, a critical hardware-level error occurred: `import_mok_state() failed: Volume Full`. This is a documented issue with specific MSI motherboards where the NVRAM (Non-Volatile Random-Access Memory) becomes saturated with obsolete Windows logs, preventing the Ubuntu installer from writing MokList security keys.
 
-### 3.4 Repository & Server Directory Structure
+To resolve this without risking a motherboard brick, the strict bootloader (`shimx64.efi`) was manually bypassed in favor of the standard bootloader (`grubx64.efi`). The system was dropped into a `tty` shell (`Alt+F2`) during the installer failure, and the EFI partition (`sda1`) was patched directly via the terminal:
+
+```bash
+# 1. Mount the EFI boot partition of the SSD
+sudo mount /dev/sda1 /mnt
+
+# 2. Replace the strict shimx64.efi with the standard grubx64.efi to bypass MokList checks
+sudo cp /mnt/EFI/ubuntu/grubx64.efi /mnt/EFI/ubuntu/shimx64.efi
+
+# 3. Unmount and reboot safely
+sudo umount /mnt
+reboot
+```
+Following this patch, the system booted flawlessly, and the bare-metal installation was completed on the 120GB SSD.
+
+### 3.4 Headless Server Configuration & CasaOS Deployment
+
+Once the OS was installed, the laptop needed to be converted into a true "Headless Server"—capable of operating 24/7 with the physical lid closed, managed entirely via remote SSH.
+
+**1. Systemd Logind Configuration (Lid Switch Ignore)**
+By default, closing a laptop lid triggers a suspend state, halting all server operations. To prevent this, the `systemd-logind` configuration file was modified to ignore lid switch events entirely.
+
+```bash
+sudo nano /etc/systemd/logind.conf
+```
+The following parameters were uncommented and altered to `ignore`:
+```ini
+HandleLidSwitch=ignore
+HandleLidSwitchExternalPower=ignore
+```
+The daemon was then restarted to apply the changes instantly, allowing the laptop to be closed and racked:
+```bash
+sudo systemctl restart systemd-logind
+```
+
+**2. Remote Access (SSH) & Deployment**
+With the server physically closed, administration transitioned to a secondary workstation. Initially, the router assigned the server a dynamic DHCP address (`192.168.1.145`). An SSH session was established to access the terminal remotely:
+```bash
+ssh raphael@192.168.1.145
+```
+*(Note: This dynamic IP was strictly temporary for the initial setup phase. The IP was later permanently pinned to `192.168.1.2` via Netplan, as detailed in Section 3.6).*
+
+Through this remote SSH session, **CasaOS**—a lightweight, Docker-based orchestration UI—was deployed using the official installation script:
+```bash
+curl -fsSL [https://get.casaos.io](https://get.casaos.io) | sudo bash
+```
+Once CasaOS was active, the secondary 1TB internal HDD (`Storage1`) was formatted to **EXT4** via the CasaOS Web UI, optimizing it for Linux file ownership and container data storage.
+
+### 3.5 Repository & Server Directory Structure
 
 To maintain organization and ensure the infrastructure is easily reproducible, the repository and server configuration files are structured as follows:
 
@@ -160,6 +212,127 @@ Laptop-Home-Server/
 └── README.md                    # This master documentation file
 ```
 
+### 3.6 Host Network Configuration & OS-Level Hardening
+
+To ensure absolute network stability, redundancy, and maximum security against local or external threat vectors, the server's network interfaces (Ethernet and Wi-Fi) were statically configured directly via **Netplan**. Relying on dynamic addressing (DHCP) for core infrastructure introduces unnecessary attack surfaces and vulnerabilities.
+
+**1. Static IP & Netplan Deployment (DHCP Spoofing Mitigation)**
+By explicitly disabling DHCP (`dhcp4: no`) and hardcoding the IP addresses at the kernel level, the server is immunized against Rogue DHCP server attacks and IP spoofing. The setup was executed step-by-step in the terminal:
+
+* First, the exact name of the network interface (e.g., `enp3s0`) was identified:
+    ```bash
+    ip a
+    ```
+* The configuration file was located and edited (Nano shortcuts `Ctrl + \`, `^.*`, and `A` were utilized to rapidly clear default boilerplate text):
+    ```bash
+    ls /etc/netplan/
+    sudo nano /etc/netplan/00-installer-config.yaml
+    ```
+* The YAML file was fully restructured to enforce the static IPs (`192.168.1.2` for Ethernet and `192.168.1.3` for Wi-Fi) and a specific DNS hierarchy:
+    ```yaml
+    network:
+      version: 2
+      ethernets:
+        enp3s0:
+          match:
+            macaddress: ##:##:##:##:##:##
+          set-name: enp3s0
+          dhcp4: no
+          addresses:
+            - 192.168.1.2/24
+          routes:
+            - to: default
+              via: 192.168.1.1
+              metric: 100
+          nameservers:
+            addresses:
+              - 9.9.9.9
+              - 149.112.112.112
+              - 1.1.1.1
+              - 1.0.0.1
+              - 8.8.8.8
+              - 8.8.4.4
+              - 192.168.1.1
+      wifis:
+        wlp2s0:
+          access-points:
+            COSMOTE-559955:
+              password: [ENCRYPTED_WIFI_PASSWORD]
+          dhcp4: no
+          addresses:
+            - 192.168.1.3/24
+          routes:
+            - to: default
+              via: 192.168.1.1
+              metric: 200
+          nameservers:
+            addresses:
+              - 9.9.9.9
+              - 149.112.112.112
+              - 1.1.1.1
+              - 1.0.0.1
+              - 8.8.8.8
+              - 8.8.4.4
+              - 192.168.1.1
+    ```
+* The configuration was saved (`Ctrl+O`, `Enter`, `Ctrl+X`) and applied directly to the host:
+    ```bash
+    sudo netplan apply
+    ```
+
+**2. DNS Prioritization Strategy (Anti-DNS Hijacking)**
+Hardcoding DNS resolvers directly into Netplan prevents malicious actors or compromised local routers from injecting poisoned DNS entries (DNS Hijacking) via DHCP broadcasts. The `nameservers` block reflects a highly robust failover strategy prioritizing network security:
+1.  **Quad9 (`9.9.9.9`, `149.112.112.112`):** Set as the primary resolver. Selected for its built-in Cyber Threat Intelligence that blocks malware, botnets, and phishing domains at the routing level before they can load.
+2.  **Cloudflare (`1.1.1.1`, `1.0.0.1`):** Set as the primary fallback. Functions as an ultra-fast, raw DNS resolver (often sub-5ms latency) providing maximum speed redundancy.
+3.  **Google DNS (`8.8.8.8`, `8.8.4.4`):** Set as the tertiary fallback to guarantee 100% uptime.
+4.  **Local Gateway (`192.168.1.1`):** The absolute last resort.
+
+**3. Network Validation & Tailscale Integration (Zero-Trust Overlay)**
+To guarantee the host OS was resolving traffic correctly through the intended DNS tunnel, extensive terminal-based validations were executed:
+
+* Checking the active DNS hierarchy via Network Manager and systemd:
+    ```bash
+    networkctl status
+    systemd-resolve --status
+    nmcli dev show | grep DNS
+    ```
+* Running live resolution tests and packet loss checks:
+    ```bash
+    nslookup google.com
+    dig google.com
+    ping -c 3 google.com
+    ```
+* *Note on Tailscale MagicDNS:* During active SSH sessions over the Tailscale VPN, executing `cat /etc/resolv.conf` displays `nameserver 100.100.100.100`. This is highly intentional; Tailscale's MagicDNS acts as a secure, encrypted Zero-Trust overlay. It resolves local mesh hostnames (e.g., `rafailpc`) while automatically forwarding external WAN queries out to the Netplan-defined Quad9/Cloudflare servers. This architecture shields internal DNS queries from the physical LAN, neutralizing eavesdropping or lateral movement attempts from untrusted local network devices.
+
+**4. Wireless Interface Hardening (Dark Standby)**
+Although the Wi-Fi interface (`wlp2s0`) was fully configured in Netplan with a static IP (`192.168.1.3/24`) and an identical DNS failover array as the Ethernet, the wireless radio was intentionally **disabled** at the OS level. 
+* **Security & Stability Justification:** Leaving an active Wi-Fi connection running concurrently with Gigabit Ethernet on a server creates an unnecessary wireless attack surface (making it vulnerable to Deauth attacks or Rogue APs) and can lead to asynchronous routing issues where the OS accidentally routes traffic through the slower Wi-Fi metric. By fully configuring it but disabling the physical radio, it acts as a "Dark Standby"—ready to be instantly enabled without configuration only if the physical Ethernet port fails.
+* **Execution:** The wireless transmitter was killed at the kernel level using the `rfkill` utility, ensuring only the Ethernet interface (`enp3s0`) handles traffic:
+    ```bash
+    # Block all Wi-Fi transmissions at the OS level
+    sudo rfkill block wifi
+
+    # Verify the radio is completely disabled (Soft blocked: yes)
+    rfkill list wifi
+
+    # Confirm the interface is down
+    ip link show wlp2s0
+    ```
+
+**4. Wireless Interface Hardening (Dark Standby)**
+Although the Wi-Fi interface (`wlp2s0`) was fully configured in Netplan with a static IP (`192.168.1.3/24`) and an identical DNS failover array as the Ethernet, the wireless radio was intentionally **disabled** at the OS level. 
+* **Security & Stability Justification:** Leaving an active Wi-Fi connection running concurrently with Gigabit Ethernet on a server creates an unnecessary wireless attack surface (making it vulnerable to Deauth attacks or Rogue APs) and can lead to asynchronous routing issues where the OS accidentally routes traffic through the slower Wi-Fi metric. By fully configuring it but disabling the physical radio, it acts as a "Dark Standby"—ready to be instantly enabled without configuration only if the physical Ethernet port fails.
+* **Execution:** The wireless transmitter was killed at the kernel level using the `rfkill` utility, ensuring only the Ethernet interface (`enp3s0`) handles traffic:
+    ```bash
+    # Block all Wi-Fi transmissions at the OS level
+    sudo rfkill block wifi
+
+    # Verify the radio is completely disabled (Soft blocked: yes)
+    rfkill list wifi
+
+    # Confirm the interface is down
+    ip link show wlp2s0
+    ```
 ---
 
 ## 4. Services Analysis (Implementation & Troubleshooting)
@@ -271,10 +444,10 @@ To enforce strict privacy among family members, the default CasaOS UI sharing me
 
 * **Credential Management:** Passwords for all users (including the admin) were independently set directly into the Samba database, ensuring credentials remain strictly encrypted:
   ```bash
-  sudo smbpasswd -a raphael
-  sudo smbpasswd -a christina
-  sudo smbpasswd -a markella
-  sudo smbpasswd -a panagiotis
+  sudo smbpasswd -a <password> //for raphael
+  sudo smbpasswd -a <password> //for christina
+  sudo smbpasswd -a <password> //for markella
+  sudo smbpasswd -a <password> //for panagiotis
   ```
 
 * **Samba Isolation (The Configuration File):** The main Samba configuration file was opened via the terminal:
