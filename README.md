@@ -545,3 +545,87 @@ Accessing the server files is optimized through a Split Tunneling approach. Loca
 * **Physical Layer Packet Loss (VPN Instability):** The Tailscale VPN experienced frequent, random disconnects. Diagnosis revealed the TP-Link switch port indicator was Orange (10/100Mbps) instead of Green (1000Mbps). A physical contact issue in the Cat6a ethernet cable pins caused the auto-negotiation to drop to 100Mbps, resulting in micro-packet loss. While basic web browsing masked the packet loss via retransmissions, the strict WireGuard encrypted tunnel collapsed. Reseating the cable restored the Gigabit link and permanently stabilized the VPN.
 * **Windows SMB Caching ("This folder is empty" error):** When adjusting folder sharing through the CasaOS UI, the Samba daemon hierarchy broke. Even after manual `smb.conf` deployment, Windows client machines displayed an empty network drive. This was resolved by forcing Windows to flush its SMB cache by deleting all existing server entries in the Windows Credential Manager, executing an "Unshare" action in the CasaOS UI, and issuing `sudo systemctl restart smbd`.
 * **Cron `-mtime` Logic Misinterpretation & Linux Case-Sensitivity:** An initial assumption was made that the 30-day purge script had failed because a file (`word.zip`) remained in the COMMON folder. Debugging commenced by verifying the exact file name using `ls -lh "/mnt/Storage1/COMMON (SHARED)/"` (to account for strict Linux case-sensitivity). Using the `stat "/mnt/Storage1/COMMON (SHARED)/word.zip"` command in the terminal revealed the file's `Modify` timestamp was exactly 24 days old. A subsequent dry run using `find ... -mtime +30` (without the `-delete` flag) confirmed the script was executing flawlessly, correctly ignoring files that had not strictly crossed the 30-day threshold.
+
+### 4.3 Zero-Trust Mesh VPN & Gateway Routing (Tailscale)
+
+To securely manage the homelab remotely and bypass Carrier-Grade NAT (CGNAT) without exposing vulnerable ports to the public internet, **Tailscale** (a WireGuard-based Mesh VPN) was implemented. This setup provides a Zero-Trust Network Access (ZTNA) overlay, allowing end-to-end encrypted peer-to-peer (P2P) connections globally.
+
+#### 1. Containerization Failure & Bare-Metal Pivot
+The initial deployment strategy involved running Tailscale as a Docker container via the CasaOS App Store (using the `big-bear-tailscale` image). However, this introduced severe instability. 
+
+* **Diagnostics & Troubleshooting:** The container failed to provide the authentication link, entering a continuous restart loop (`exit status 1`, `logger closing down`). Forcing the container to execute the authentication command directly via `sudo docker exec -it big-bear-tailscale tailscale up` revealed persistent timeout errors caused by Docker's internal networking restrictions.
+* **Resolution:** To ensure absolute stability and system-level network control, the container was forcefully stopped and permanently uninstalled. Tailscale was deployed directly onto the **bare-metal Ubuntu Host OS** using the official installation script:
+```bash
+  curl -fsSL [https://tailscale.com/install.sh](https://tailscale.com/install.sh) | sh
+  sudo tailscale up
+  ```
+Once authenticated via the browser, the server was assigned a permanent static VPN IP (`100.X.X.X`), verified by executing:
+```bash
+  tailscale ip -4
+  ```
+
+#### 2. OS-Level IP Forwarding (Kernel Configuration)
+For the server to function as a central network gateway, it required explicit kernel-level permission to forward IPv4 and IPv6 traffic. The `sysctl` rules were appended and instantly applied via the terminal:
+```bash
+echo 'net.ipv4.ip_forward = 1' | sudo tee -a /etc/sysctl.d/99-tailscale.conf
+echo 'net.ipv6.conf.all.forwarding = 1' | sudo tee -a /etc/sysctl.d/99-tailscale.conf
+sudo sysctl -p /etc/sysctl.d/99-tailscale.conf
+```
+
+#### 3. Subnet Routing, Exit Node Architecture & Device Sharing
+To achieve complete remote dominance over the entire physical network and securely onboard family members, the server was elevated to a **Subnet Router** and **Exit Node**.
+
+* **Subnet Routing (Emergency Router Management):** By default, Tailscale only connects devices actively running the application. The primary motivation for deploying a Subnet Router was to establish secure, emergency remote management capabilities for the Cosmote ISP Router (`192.168.1.1`). By bridging the VPN tunnel with the physical LAN (`192.168.1.0/24`), complete administrative access to the home router (and any other general non-Tailscale local devices) is maintained from any remote location, effectively eliminating the need to expose dangerous public-facing web management ports.
+* **The Execution:** The node was instructed to advertise the local IP range (`192.168.1.0/24`) and its Exit Node capabilities simultaneously using the following command:
+```bash
+  sudo tailscale up --advertise-routes=192.168.1.0/24 --advertise-exit-node
+  ```
+  *(Note: The terminal returned a `warning: UDP GRO forwarding is suboptimally configured` message. This is a known performance tuning notice regarding the Linux network adapter and does not indicate an error or impede functionality).*
+* **Dashboard Approval:** Within the Tailscale Admin Console, both the Subnet Route (`192.168.1.0/24`) and Exit Node toggles were manually approved under the machine's "Edit route settings". Remote client machines (e.g., Windows laptops) were configured to "Use Tailscale subnets" to successfully route local traffic through the tunnel.
+
+<p align="center">
+  <img src="./images/tailscale_2.png" width="60%" alt="Tailscale Subnet and Exit Node Configuration">
+</p>
+
+> *Figure 9: Approving the advertised Subnet routes and Exit Node capabilities within the Tailscale Admin Console to enable LAN bridging.*
+
+* **Node Sharing (Principle of Least Privilege):** While all core network devices (`laptop-home-server`, `rafailpc`, `redmi-note-14-pro`) are securely grouped under the primary owner's account (`rafasliakos...`), access had to be granted to a family member. Instead of sharing the master account credentials, Tailscale's "Node Sharing" feature was utilized. The server node was explicitly shared with the brother's email address (`ccube1700@gmail.com`). This securely grants him direct access to the server's self-hosted services without exposing the entire underlying physical network or granting access to the owner's personal client devices.
+
+<p align="center">
+  <img src="./images/tailscale_3.png" width="60%" alt="Tailscale Node Sharing Configuration">
+</p>
+
+> *Figure 10: Utilizing Tailscale's Node Sharing feature to grant isolated access to a specific family member without exposing the entire Tailnet.*
+
+#### 4. Global DNS Override & AdGuard Integration (The "Magic Trick")
+A highly advanced Split-Tunneling and DNS overriding architecture was configured to ensure Ad-Blocking operates globally, even when the Exit Node routing is intentionally disabled for latency-sensitive tasks (like online gaming).
+
+* **Tailscale DNS Configuration:** In the Tailscale Admin Console, the server's VPN IP (`100.X.X.X`) was added as a Custom Global Nameserver, and the **"Override local DNS"** toggle was activated.
+* **The "Magic Trick" Logic:** When a remote device sets the Exit Node to `None`, its heavy traffic (downloads, streaming) utilizes the direct local Wi-Fi to achieve maximum speed. However, due to the DNS Override, the microscopic DNS queries are routed via the Tailscale tunnel (`100.100.100.100` MagicDNS routes to `100.X.X.X`) directly to the home AdGuard container. This hybrid approach guarantees network-wide ad-blocking and Quad9 DoH malware protection with zero bandwidth throttling.
+
+#### 5. Resolving IPv6 DNS Leaks
+During local testing, a DNS leak was identified: Windows client devices were bypassing the AdGuard sinkhole by querying the ISP's (Cosmote) default IPv6 DNS servers.
+* **The Fix:** IPv6 was disabled on the physical network adapters of local Windows clients, forcing 100% of LAN traffic through the IPv4 AdGuard sinkhole.
+* **AdGuard Configuration:** Crucially, inside the AdGuard settings, the **"Disable resolving of IPv6 addresses"** option was left **unchecked**. This allows Tailscale's internal IPv6 stack (`fd7a:...`) to seamlessly query AdGuard for AAAA records when operating remotely, ensuring maximum P2P traversal speed.
+
+#### 6. Network Validation & Performance Analysis
+To validate the integrity of the Zero-Trust mesh and the routing speed, exhaustive terminal tests were conducted from a remote laptop connected to a public Wi-Fi network:
+
+* **Direct Peer-to-Peer Verification (Tailscale Ping):**
+  Executing `tailscale ping 100.X.X.X` yielded:
+  `pong from laptop-home-server (100.X.X.X) via [2a02:587:...]:41641 in 6ms`
+  *Analysis:* The `via` parameter confirmed the connection was entirely direct (P2P), completely bypassing slower DERP relays. It utilized the server's public Cosmote IPv6 address via UDP port `41641`, achieving an astonishingly low latency of **6ms to 19ms** across cities.
+* **Encapsulation & Firewall Testing (Tracert):**
+  Executing a `tracert` to the Tailscale IP (`100.X.X.X`) showed a single (1) hop, proving full WireGuard encapsulation. Conversely, executing a `tracert` directly to the server's public IPv6 address revealed the ISP's routing nodes until it reached the home router, where it correctly timed out (`* * * Request timed out`). This confirmed the home firewall is impenetrable to public ICMP requests, yet completely accessible via the authenticated Tailscale tunnel.
+* **VPN Overhead & Bandwidth Validation (Speedtest):**
+  * **With Exit Node Active:** A remote speed test yielded ~106 Mbps / 32 Mbps. The ISP was correctly identified as **Cosmote**, proving the public network was completely bypassed and the connection securely terminated at the home 1000/500 Mbps FTTH connection.
+  * **With Exit Node Disabled:** A subsequent test yielded 154 Mbps / 41ms Ping on the public network. Comparing the two tests revealed that the WireGuard encryption overhead consumes approximately 10-15% of the bandwidth, while the primary limitation was the physical capacity of the public Wi-Fi infrastructure (154 Mbps), not the server.
+
+#### 7. Node Hardening & Final Mesh Dashboard
+* **Key Expiry Mitigation:** By default, Tailscale expires node keys every 180 days. To prevent the server from suddenly disconnecting and collapsing the remote network infrastructure, the **"Disable key expiry"** option was enabled in the Tailscale dashboard, ensuring 24/7/365 uninterrupted uptime for the core Exit Node/Subnet router.
+
+<p align="center">
+  <img src="./images/tailscale_1.png" width="90%" alt="Tailscale Machines Dashboard Final State">
+</p>
+
+> *Figure 11: The final state of the Tailscale dashboard, displaying the obfuscated VPN IPs, the core server with all active routing badges (`Shared out`, `Expiry disabled`, `Subnets`, `Exit Node`), and the associated client devices.*
