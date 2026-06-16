@@ -629,3 +629,112 @@ To validate the integrity of the Zero-Trust mesh and the routing speed, exhausti
 </p>
 
 > *Figure 11: The final state of the Tailscale dashboard, displaying the obfuscated VPN IPs, the core server with all active routing badges (`Shared out`, `Expiry disabled`, `Subnets`, `Exit Node`), and the associated client devices.*
+
+### 4.4 Game Server Architecture & Multi-Instance Management (Crafty Controller)
+
+Beyond core network infrastructure and file systems, the homelab is architected to operate as a high-performance entertainment hub. To host private, persistent multiplayer sessions without impacting production services, **Crafty Controller** was deployed via Docker. Crafty acts as an advanced, web-based daemon and orchestration panel that allows for the simultaneous deployment, monitoring, and hard-resource capping of multiple isolated game server instances from a single, unified graphical interface.
+
+#### 1. Bare-Metal Storage Strategy & I/O Performance Optimization
+Game servers, particularly Minecraft Java Edition, are notoriously heavy on disk Read/Write operations due to constant chunk generation, world saving, and player position logging. Utilizing a mechanical drive for this task introduces catastrophic performance bottlenecks (TPS drops, block lag).
+
+* **Storage Allocation:** To guarantee maximum Input/Output Operations Per Second (IOPS) and fluid chunk rendering, all Crafty Controller container paths and root server directories were strictly bound to the **120GB M.2 SSD** (OS Drive). The 1TB mechanical HDD is entirely bypassed for this workload to maintain fast response times.
+* **Java Virtual Machine (JVM) Heap & RAM Budgeting:** The host system operates on a strict budget of 8GB DDR4 RAM. Since Minecraft allocations are un-swappable and reserved entirely upon boot, a meticulous memory management profile was enforced to prevent the Linux Out-Of-Memory (OOM) Killer from terminating critical core services (AdGuard, Tailscale, Netplan):
+  * **Host OS & Containers Buffer:** 3.5GB to 4GB RAM is locked and reserved for system stability.
+  * **Crafty Max Pool:** The combined allocation for all running game instances is strictly capped between 4GB and 4.5GB.
+
+#### 2. Multi-Instance Provisioning & Port Multiplexing
+To accommodate different game modes (e.g., a pure Vanilla survival world alongside a highly optimized modded environment), Crafty was configured to host and orchestrate multiple independent instances. To avoid network socket collisions on the host loopback interface, a strict port assignment strategy was implemented:
+
+* **Minecraft Server 1 (Primary Instance):** Formatted using optimized server software (e.g., PaperMC) to maximize CPU thread utilization. This instance is bound to the default Minecraft networking socket:
+  * Internal IP Protocol: `127.0.0.1` (Localhost)
+  * Bound Port: **`25565`** (TCP/UDP)
+* **Minecraft Server 2 (Secondary Instance):** Provisioned for experimental maps or alternative versions. To prevent a port binding conflict, the application configuration was manually altered to bind to the subsequent network socket:
+  * Internal IP Protocol: `127.0.0.1` (Localhost)
+  * Bound Port: **`25566`** (TCP/UDP)
+
+#### 4.4.1 Secure Public Exposure & Tunneling Architecture (Playit.gg)
+Exposing these local game instances to external players presents a significant security risk. Traditional methods dictate utilizing **Port Forwarding** on the ISP router. However, this approach explicitly exposes the residential public WAN IP address to the open web, inviting persistent automated port scans, brute-force exploitation attempts, and catastrophic Distributed Denial of Service (DDoS) attacks. Furthermore, under Carrier-Grade NAT (CGNAT) environments, inbound port forwarding is physically blocked by the ISP.
+
+To achieve maximum Operational Security (OPSEC), mask the home network entirely, and route traffic without modifying the primary firewall, a reverse-tunneling framework via **Playit.gg** was implemented. Playit operates a global network of distributed proxy edges. A localized, low-overhead native agent runs on the host OS, maintaining a secure, outbound persistent connection to the Playit cloud. External players connect directly to Playit's hardened public edge, which securely proxies the packets back down the established outbound tunnel directly to the respective local game sockets. **The home public IP address remains completely hidden and un-scannable.**
+
+#### 1. Step-by-Step Native Linux Agent Deployment
+The deployment of the Playit.gg agent onto the Linux server is fully automated utilizing the built-in CasaOS terminal interface and the official automated installation method.
+
+* **Step 1: Accessing the Terminal Interface**
+  1. Log into the centralized CasaOS web administration dashboard.
+  2. From the main desktop utility menu, locate and open the native **Terminal** application.
+  3. Authenticate into the shell execution profile by inputting the administrative superuser root credentials associated with the primary CasaOS deployment.
+
+* **Step 2: Installing the Playit Agent**
+  Within the active terminal sequence window, execute the following configuration scripts sequentially to refresh regional package lists, resolve the `curl` package hook dependency if it is missing, and execute the official automated service deployment binary script:
+```bash
+  sudo apt update && sudo apt install curl -y
+  curl -fsSL [https://packages.playit.gg/install.sh](https://packages.playit.gg/install.sh) | bash
+  ```
+
+* **Step 3: Service Layer Initialization & Boot Persistence**
+  Fire up the local Playit background proxy handler immediate thread using the native `systemd` supervisor engine:
+```bash
+  sudo systemctl start playit
+  ```
+  Configure the daemon execution flags to ensure that the agent persists across system crashes and triggers an automatic startup handshake sequence whenever the underlying CasaOS host boots up:
+```bash
+  sudo systemctl enable playit
+  ```
+  To fetch the single-use programmatic cryptographic activation node string, initialize the core registration binary sequence:
+```bash
+  sudo playit setup
+  ```
+  Copy the explicit link address printed out onto the terminal stdout panel, parse it inside an active workstation web browser session, and follow the setup wizard prompt to claim the local software daemon to the cloud console network.
+
+#### 2. Cloud Tunnel Multiplexing & Dual-Port Allocation
+With the localized hardware agent successfully registered to the control plane, the network matrix was configured to handle incoming traffic multiplexing. Because the internal architecture runs two distinct, isolated game servers on independent sockets (`25565` and `25566`), two autonomous tunnel instances were defined inside the centralized panel interface.
+
+* **Reviewing the Global Agent Matrix:**
+  The centralized workspace indicates that the host node (`LAPTOP-HOME-SERVER`) is fully linked to the control account, reflecting the active mapping profiles.
+
+<p align="center">
+  <img src="./images/playit4.png" width="85%" alt="Playit Cloud Management Dashboard Master View">
+</p>
+
+> *Figure 12: The master overview interface displaying the registered Linux hardware daemon synchronized with the account profile context.*
+
+* **Evaluating Agent Parameters & Connection Architecture:**
+  The underlying telemetry sheet verifies the structural properties of the background service daemon thread, registering the loopback network translation pathways.
+
+<p align="center">
+  <img src="./images/playit5.png" width="80%" alt="Playit Cloud Management Dashboard Master View">
+</p>
+
+> *Figure 13: Reviewing the architectural mapping properties, software versioning, and internal OS layer profiles of the local agent thread.*
+
+* **Multiplexed Custom Tunnel Pathway Allocations:**
+  To safely feed traffic downstream into the isolated worlds without socket overlap collisions, the mapping parameters split the network boundary over two dedicated routing tunnels:
+
+<p align="center">
+  <img src="./images/playit1.png" width="85%" alt="Playit Cloud Management Dashboard Master View">
+</p>
+
+> *Figure 14: The active tunnel matrix showing the isolated game profiles successfully defined inside the cloud reverse proxy platform.*
+
+  1. **Tunnel Pathway 1 (LOCAL MINECRAFT SERVER 1_P):** Binds the inbound global edge data straight onto the native standard game port socket (`127.0.0.1:25565`) using the optimized pre-configured template profiles.
+
+<p align="center">
+  <img src="./images/playit2.png" width="75%" alt="Playit Cloud Management Dashboard Master View">
+</p>
+
+> *Figure 15: Structural blueprint mapping proxy endpoints down onto the primary loopback game socket port 25565.*
+
+  2. **Tunnel Pathway 2 (PUBLIC SERVER MINECRAFT 2_V):** Establishes an alternate custom forward boundary path mapping incoming client packets directly over the designated experimental host port socket (`127.0.0.1:25566`).
+
+<p align="center">
+  <img src="./images/playit3.png" width="75%" alt="Playit Cloud Management Dashboard Master View">
+</p>
+
+> *Figure 16: Custom custom-port proxy pathway rule successfully binding external inputs straight down to the internal 25566 socket.*
+
+External users purely input these friendly obfuscated proxy domains into their multiplayer address box. Packet groups hitting the proxy node are decoded, packaged inside the secure reverse-proxy stream, and released precisely onto the host local loopback ports, seamlessly evading the home firewall.
+
+#### 3. Operational State Notice: Infrastructure Cold Standby
+* **Resource Optimization Policy:** Because game server daemons and Java runtime environments continuously consume background CPU cycles and aggressively lock down RAM chunks, both the Crafty game servers and the Playit native Linux agent are strictly configured to operate in a **Cold Standby** state when not actively utilized. 
+* **State Management:** The services are kept down to guarantee 100% processing efficiency and memory overhead availability for the primary network infrastructure and data backups. However, the entire architecture remains completely provisioned, configured, and hardened; a single administrative SSH command can warm-boot the entire environment into an active, globally accessible production state within seconds.
