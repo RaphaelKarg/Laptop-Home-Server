@@ -174,8 +174,20 @@ The daemon was then restarted to apply the changes instantly, allowing the lapto
 sudo systemctl restart systemd-logind
 ```
 
-**2. Remote Access (SSH) & Deployment**
-With the server physically closed, administration transitioned to a secondary workstation. Initially, the router assigned the server a dynamic DHCP address (`192.168.1.145`). An SSH session was established to access the terminal remotely:
+**2. Automated Security Patching (Zero-Day Vulnerability Mitigation)**
+Maintaining an always-on server requires proactive defense against newly discovered vulnerabilities (CVEs). Relying on manual updates introduces human delay, leaving the system temporarily exposed. To mitigate this, the `unattended-upgrades` utility was deployed to autonomously fetch and install critical security patches in the background.
+
+```bash
+# Install the automated upgrades utility
+sudo apt install unattended-upgrades -y
+
+# Enable and configure the background service
+sudo dpkg-reconfigure --priority=low unattended-upgrades
+```
+*(Note: Executing the reconfigure command opens an interactive terminal UI (ncurses) where "Yes" was selected. This permanently activates the automatic download and installation of stable security updates, ensuring the host OS remains secure without requiring future manual intervention).*
+
+**3. Remote Access (SSH) & Deployment**
+With the server physically closed and secured, administration transitioned to a secondary workstation. Initially, the router assigned the server a dynamic DHCP address (`192.168.1.145`). An SSH session was established to access the terminal remotely:
 ```bash
 ssh raphael@192.168.1.145
 ```
@@ -235,7 +247,7 @@ By explicitly disabling DHCP (`dhcp4: no`) and hardcoding the IP addresses at th
       ethernets:
         enp3s0:
           match:
-            macaddress: ##:##:##:##:##:##
+            macaddress: 4c:cc:6a:e0:ae:dc
           set-name: enp3s0
           dhcp4: no
           addresses:
@@ -290,17 +302,24 @@ Hardcoding DNS resolvers directly into Netplan prevents malicious actors or comp
 **3. Network Validation & Tailscale Integration (Zero-Trust Overlay)**
 To guarantee the host OS was resolving traffic correctly through the intended DNS tunnel, extensive terminal-based validations were executed:
 
-* Checking the active DNS hierarchy via Network Manager and systemd:
+* Checking the active DNS hierarchy natively via `systemd-networkd` and `systemd-resolved`:
     ```bash
     networkctl status
-    systemd-resolve --status
-    nmcli dev show | grep DNS
+    resolvectl status
     ```
 * Running live resolution tests and packet loss checks:
     ```bash
     nslookup google.com
     dig google.com
     ping -c 3 google.com
+    ```
+* **Zero-Trust Mesh Validation:** The integrity of the encrypted Tailscale overlay was verified directly via the native Tailscale CLI, rather than relying on local DNS stubs. These commands confirm that the node is successfully authenticated, peer-to-peer UDP hole punching is functioning, and the encrypted tunnel is actively shielding traffic from the physical LAN:
+    ```bash
+    # Verify active peer connections and node health within the Tailnet
+    tailscale status
+
+    # Evaluate latency, UDP packet flow, and routing paths to the DERP relays
+    tailscale netcheck
     ```
 * *Note on Tailscale MagicDNS:* During active SSH sessions over the Tailscale VPN, executing `cat /etc/resolv.conf` displays `nameserver 100.100.100.100`. This is highly intentional; Tailscale's MagicDNS acts as a secure, encrypted Zero-Trust overlay. It resolves local mesh hostnames (e.g., `rafailpc`) while automatically forwarding external WAN queries out to the Netplan-defined Quad9/Cloudflare servers. This architecture shields internal DNS queries from the physical LAN, neutralizing eavesdropping or lateral movement attempts from untrusted local network devices.
 
@@ -318,22 +337,6 @@ Although the Wi-Fi interface (`wlp2s0`) was fully configured in Netplan with a s
     # Confirm the interface is down
     ip link show wlp2s0
     ```
-
-**4. Wireless Interface Hardening (Dark Standby)**
-Although the Wi-Fi interface (`wlp2s0`) was fully configured in Netplan with a static IP (`192.168.1.3/24`) and an identical DNS failover array as the Ethernet, the wireless radio was intentionally **disabled** at the OS level. 
-* **Security & Stability Justification:** Leaving an active Wi-Fi connection running concurrently with Gigabit Ethernet on a server creates an unnecessary wireless attack surface (making it vulnerable to Deauth attacks or Rogue APs) and can lead to asynchronous routing issues where the OS accidentally routes traffic through the slower Wi-Fi metric. By fully configuring it but disabling the physical radio, it acts as a "Dark Standby"—ready to be instantly enabled without configuration only if the physical Ethernet port fails.
-* **Execution:** The wireless transmitter was killed at the kernel level using the `rfkill` utility, ensuring only the Ethernet interface (`enp3s0`) handles traffic:
-    ```bash
-    # Block all Wi-Fi transmissions at the OS level
-    sudo rfkill block wifi
-
-    # Verify the radio is completely disabled (Soft blocked: yes)
-    rfkill list wifi
-
-    # Confirm the interface is down
-    ip link show wlp2s0
-    ```
----
 
 ## 4. Services Analysis (Implementation & Troubleshooting)
 
