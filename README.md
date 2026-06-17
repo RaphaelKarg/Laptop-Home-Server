@@ -199,6 +199,49 @@ curl -fsSL [https://get.casaos.io](https://get.casaos.io) | sudo bash
 ```
 Once CasaOS was active, the secondary 1TB internal HDD (`Storage1`) was formatted to **EXT4** via the CasaOS Web UI, optimizing it for Linux file ownership and container data storage.
 
+### 3.4.1 OpenSSH Vulnerability Mitigation & SSH Hardening
+
+As the server transitioned to a fully headless operating model, SSH became the primary method of remote administration. Securing the service was therefore considered essential for maintaining the overall security of the homelab environment.
+
+During the initial deployment period, a critical OpenSSH vulnerability (**CVE-2024-6387**, publicly known as **regreSSHion**) was disclosed. The vulnerability affected specific OpenSSH versions and could potentially allow remote code execution with elevated privileges under certain conditions. Given that SSH was actively used for server management, immediate mitigation measures were implemented.
+
+Because the server simultaneously operated as the network's primary DNS filtering platform through AdGuard Home, maintenance had to be performed carefully to avoid disrupting internet connectivity for all household devices. Prior to applying updates and rebooting the host, the router's DNS settings were temporarily redirected from the server (`192.168.1.2`) to Cloudflare DNS (`1.1.1.1`).
+
+Once DNS redundancy was established, obsolete packages were removed and the server was rebooted to ensure all updated OpenSSH components were loaded correctly:
+
+```bash
+sudo apt autoremove -y
+sudo reboot
+```
+
+After the host successfully returned online and all critical services were operational, the router's DNS configuration was restored to the server's static address (`192.168.1.2`), reactivating network-wide DNS filtering and advertisement blocking.
+
+To further reduce the attack surface, the OpenSSH daemon configuration was hardened by editing the main configuration file:
+
+```bash
+sudo nano /etc/ssh/sshd_config
+```
+
+The following directives were enforced:
+
+```ini
+PermitRootLogin no
+AllowUsers ***
+```
+
+These settings provide two important security controls:
+
+- Direct SSH authentication as the `root` user is completely disabled.
+- Remote access is restricted exclusively to the designated administrative account (`raphael`).
+
+After saving the configuration, the SSH daemon was restarted to apply the new access-control policy:
+
+```bash
+sudo systemctl restart ssh
+```
+
+This hardening procedure significantly reduced the risk of unauthorized access, brute-force attacks, and privilege-escalation attempts while ensuring secure long-term remote administration of the server.
+
 ### 3.5 Repository & Server Directory Structure
 
 To maintain organization and ensure the infrastructure is easily reproducible, the repository and server configuration files are structured as follows:
