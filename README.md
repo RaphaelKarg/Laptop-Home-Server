@@ -294,7 +294,7 @@ By explicitly disabling DHCP (`dhcp4: no`) and hardcoding the IP addresses at th
             dhcp4: false
             dhcp6: false
             match:
-              macaddress: 4c:cc:6a:e0:ae:dc
+              macaddress: ##:##:##:##:##:##
             nameservers:
               addresses:
               - 9.9.9.9
@@ -313,8 +313,8 @@ By explicitly disabling DHCP (`dhcp4: no`) and hardcoding the IP addresses at th
         wifis:
           wlp2s0:
             access-points:
-              "ΤΟ_ΟΝΟΜΑ_ΤΟΥ_WIFI":
-                password: "ΚΩΔΙΚΟΣ_WIFI"
+              WIFI-SSID:
+                password: "WIFI-PASSWORD"
             dhcp4: false
             dhcp6: false
             addresses:
