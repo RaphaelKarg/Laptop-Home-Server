@@ -284,23 +284,19 @@ By explicitly disabling DHCP (`dhcp4: no`) and hardcoding the IP addresses at th
     sudo nano /etc/netplan/00-installer-config.yaml
     ```
 * The YAML file was fully restructured to enforce the static IPs (`192.168.1.2` for Ethernet and `192.168.1.3` for Wi-Fi) and a specific DNS hierarchy:
-    ```yaml
-    network:
-      version: 2
-      ethernets:
-        enp3s0:
-          match:
-            macaddress: ##:##:##:##:##:##
-          set-name: enp3s0
-          dhcp4: no
-          addresses:
-            - 192.168.1.2/24
-          routes:
-            - to: default
-              via: 192.168.1.1
-              metric: 100
-          nameservers:
+    ```
+      network:
+        version: 2
+        ethernets:
+          enp3s0:
             addresses:
+            - 192.168.1.2/24
+            dhcp4: false
+            dhcp6: false
+            match:
+              macaddress: 4c:cc:6a:e0:ae:dc
+            nameservers:
+              addresses:
               - 9.9.9.9
               - 149.112.112.112
               - 1.1.1.1
@@ -308,26 +304,31 @@ By explicitly disabling DHCP (`dhcp4: no`) and hardcoding the IP addresses at th
               - 8.8.8.8
               - 8.8.4.4
               - 192.168.1.1
-      wifis:
-        wlp2s0:
-          access-points:
-            COSMOTE-559955:
-              password: [ENCRYPTED_WIFI_PASSWORD]
-          dhcp4: no
-          addresses:
+              search: []
+            routes:
+            - to: default
+              via: 192.168.1.1
+              metric: 100
+            set-name: enp3s0
+        wifis:
+          wlp2s0:
+            access-points:
+              "ΤΟ_ΟΝΟΜΑ_ΤΟΥ_WIFI":
+                password: "ΚΩΔΙΚΟΣ_WIFI"
+            dhcp4: false
+            dhcp6: false
+            addresses:
             - 192.168.1.3/24
-          routes:
+            routes:
             - to: default
               via: 192.168.1.1
               metric: 200
-          nameservers:
-            addresses:
+            nameservers:
+              addresses:
               - 9.9.9.9
               - 149.112.112.112
               - 1.1.1.1
               - 1.0.0.1
-              - 8.8.8.8
-              - 8.8.4.4
               - 192.168.1.1
     ```
 * The configuration was saved (`Ctrl+O`, `Enter`, `Ctrl+X`) and applied directly to the host:
