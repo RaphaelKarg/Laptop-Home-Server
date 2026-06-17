@@ -504,31 +504,31 @@ To enforce strict privacy among family members, the default CasaOS UI sharing me
   At the very end of the file, the following strict access rules were appended to lock personal directories behind the `valid users` directive, while keeping the `COMMON (SHARED)` directory open for family exchange:
   ```ini
   [COMMON]
-     path = /mnt/Storage1/COMMON (SHARED)
+     path = /mnt/HDD-1TB/COMMON (SHARED)
      browsable = yes
      writable = yes
      valid users = raphael, christina, markella, panagiotis
 
   [RAFAIL]
-     path = /mnt/Storage1/RAFAIL
+     path = /mnt/HDD-1TB/RAFAIL
      browsable = yes
      writable = yes
      valid users = raphael
 
   [CHRISTINA]
-     path = /mnt/Storage1/CHRISTINA
+     path = /mnt/HDD-1TB/CHRISTINA
      browsable = yes
      writable = yes
      valid users = christina
 
   [MARKELLA]
-     path = /mnt/Storage1/MARKELLA
+     path = /mnt/HDD-1TB/MARKELLA
      browsable = yes
      writable = yes
      valid users = markella
 
   [PANAGIOTIS]
-     path = /mnt/Storage1/PANAGIOTIS
+     path = /mnt/HDD-1TB/PANAGIOTIS
      browsable = yes
      writable = yes
      valid users = panagiotis
