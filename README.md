@@ -290,7 +290,7 @@ By explicitly disabling DHCP (`dhcp4: no`) and hardcoding the IP addresses at th
       ethernets:
         enp3s0:
           match:
-            macaddress: 4c:cc:6a:e0:ae:dc
+            macaddress: ##:##:##:##:##:##
           set-name: enp3s0
           dhcp4: no
           addresses:
