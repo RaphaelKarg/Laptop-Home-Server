@@ -199,6 +199,49 @@ curl -fsSL [https://get.casaos.io](https://get.casaos.io) | sudo bash
 ```
 Once CasaOS was active, the secondary 1TB internal HDD (`Storage1`) was formatted to **EXT4** via the CasaOS Web UI, optimizing it for Linux file ownership and container data storage.
 
+### 3.4.1 OpenSSH Vulnerability Mitigation & SSH Hardening
+
+As the server transitioned to a fully headless operating model, SSH became the primary method of remote administration. Securing the service was therefore considered essential for maintaining the overall security of the homelab environment.
+
+During the initial deployment period, a critical OpenSSH vulnerability (**CVE-2024-6387**, publicly known as **regreSSHion**) was disclosed. The vulnerability affected specific OpenSSH versions and could potentially allow remote code execution with elevated privileges under certain conditions. Given that SSH was actively used for server management, immediate mitigation measures were implemented.
+
+Because the server simultaneously operated as the network's primary DNS filtering platform through AdGuard Home, maintenance had to be performed carefully to avoid disrupting internet connectivity for all household devices. Prior to applying updates and rebooting the host, the router's DNS settings were temporarily redirected from the server (`192.168.1.2`) to Cloudflare DNS (`1.1.1.1`).
+
+Once DNS redundancy was established, obsolete packages were removed and the server was rebooted to ensure all updated OpenSSH components were loaded correctly:
+
+```bash
+sudo apt autoremove -y
+sudo reboot
+```
+
+After the host successfully returned online and all critical services were operational, the router's DNS configuration was restored to the server's static address (`192.168.1.2`), reactivating network-wide DNS filtering and advertisement blocking.
+
+To further reduce the attack surface, the OpenSSH daemon configuration was hardened by editing the main configuration file:
+
+```bash
+sudo nano /etc/ssh/sshd_config
+```
+
+The following directives were enforced:
+
+```ini
+PermitRootLogin no
+AllowUsers ***
+```
+
+These settings provide two important security controls:
+
+- Direct SSH authentication as the `root` user is completely disabled.
+- Remote access is restricted exclusively to the designated administrative account (`raphael`).
+
+After saving the configuration, the SSH daemon was restarted to apply the new access-control policy:
+
+```bash
+sudo systemctl restart ssh
+```
+
+This hardening procedure significantly reduced the risk of unauthorized access, brute-force attacks, and privilege-escalation attempts while ensuring secure long-term remote administration of the server.
+
 ### 3.5 Repository & Server Directory Structure
 
 To maintain organization and ensure the infrastructure is easily reproducible, the repository and server configuration files are structured as follows:
@@ -241,23 +284,19 @@ By explicitly disabling DHCP (`dhcp4: no`) and hardcoding the IP addresses at th
     sudo nano /etc/netplan/00-installer-config.yaml
     ```
 * The YAML file was fully restructured to enforce the static IPs (`192.168.1.2` for Ethernet and `192.168.1.3` for Wi-Fi) and a specific DNS hierarchy:
-    ```yaml
-    network:
-      version: 2
-      ethernets:
-        enp3s0:
-          match:
-            macaddress: 4c:cc:6a:e0:ae:dc
-          set-name: enp3s0
-          dhcp4: no
-          addresses:
-            - 192.168.1.2/24
-          routes:
-            - to: default
-              via: 192.168.1.1
-              metric: 100
-          nameservers:
+    ```
+      network:
+        version: 2
+        ethernets:
+          enp3s0:
             addresses:
+            - 192.168.1.2/24
+            dhcp4: false
+            dhcp6: false
+            match:
+              macaddress: ##:##:##:##:##:##
+            nameservers:
+              addresses:
               - 9.9.9.9
               - 149.112.112.112
               - 1.1.1.1
@@ -265,26 +304,31 @@ By explicitly disabling DHCP (`dhcp4: no`) and hardcoding the IP addresses at th
               - 8.8.8.8
               - 8.8.4.4
               - 192.168.1.1
-      wifis:
-        wlp2s0:
-          access-points:
-            COSMOTE-559955:
-              password: [ENCRYPTED_WIFI_PASSWORD]
-          dhcp4: no
-          addresses:
+              search: []
+            routes:
+            - to: default
+              via: 192.168.1.1
+              metric: 100
+            set-name: enp3s0
+        wifis:
+          wlp2s0:
+            access-points:
+              WIFI-SSID:
+                password: "WIFI-PASSWORD"
+            dhcp4: false
+            dhcp6: false
+            addresses:
             - 192.168.1.3/24
-          routes:
+            routes:
             - to: default
               via: 192.168.1.1
               metric: 200
-          nameservers:
-            addresses:
+            nameservers:
+              addresses:
               - 9.9.9.9
               - 149.112.112.112
               - 1.1.1.1
               - 1.0.0.1
-              - 8.8.8.8
-              - 8.8.4.4
               - 192.168.1.1
     ```
 * The configuration was saved (`Ctrl+O`, `Enter`, `Ctrl+X`) and applied directly to the host:
@@ -460,31 +504,31 @@ To enforce strict privacy among family members, the default CasaOS UI sharing me
   At the very end of the file, the following strict access rules were appended to lock personal directories behind the `valid users` directive, while keeping the `COMMON (SHARED)` directory open for family exchange:
   ```ini
   [COMMON]
-     path = /mnt/Storage1/COMMON (SHARED)
+     path = /mnt/HDD-1TB/COMMON (SHARED)
      browsable = yes
      writable = yes
      valid users = raphael, christina, markella, panagiotis
 
   [RAFAIL]
-     path = /mnt/Storage1/RAFAIL
+     path = /mnt/HDD-1TB/RAFAIL
      browsable = yes
      writable = yes
      valid users = raphael
 
   [CHRISTINA]
-     path = /mnt/Storage1/CHRISTINA
+     path = /mnt/HDD-1TB/CHRISTINA
      browsable = yes
      writable = yes
      valid users = christina
 
   [MARKELLA]
-     path = /mnt/Storage1/MARKELLA
+     path = /mnt/HDD-1TB/MARKELLA
      browsable = yes
      writable = yes
      valid users = markella
 
   [PANAGIOTIS]
-     path = /mnt/Storage1/PANAGIOTIS
+     path = /mnt/HDD-1TB/PANAGIOTIS
      browsable = yes
      writable = yes
      valid users = panagiotis
@@ -667,25 +711,35 @@ The deployment of the Playit.gg agent onto the Linux server is fully automated u
 
 * **Step 2: Installing the Playit Agent**
   Within the active terminal sequence window, execute the following configuration scripts sequentially to refresh regional package lists, resolve the `curl` package hook dependency if it is missing, and execute the official automated service deployment binary script:
-```bash
+  ```bash
   sudo apt update && sudo apt install curl -y
-  curl -fsSL [https://packages.playit.gg/install.sh](https://packages.playit.gg/install.sh) | bash
+  curl -fsSL https://packages.playit.gg/install.sh | bash
   ```
 
 * **Step 3: Service Layer Initialization & Boot Persistence**
-  Fire up the local Playit background proxy handler immediate thread using the native `systemd` supervisor engine:
-```bash
+  While executing the standalone `playit` command in the terminal will successfully launch the agent in an interactive foreground session, this method is volatile; the routing tunnel will collapse the moment the terminal window is closed. 
+  
+  To guarantee high availability, run the process permanently in the background, and eliminate the need for manual intervention, the native `systemd` supervisor engine is utilized.
+
+  To manually start the Playit background proxy handler on-demand:
+  ```bash
   sudo systemctl start playit
   ```
-  Configure the daemon execution flags to ensure that the agent persists across system crashes and triggers an automatic startup handshake sequence whenever the underlying CasaOS host boots up:
-```bash
+  To configure the daemon execution flags to ensure that the agent runs permanently in the background and triggers an automatic startup handshake sequence whenever the underlying CasaOS host boots up or restarts:
+  ```bash
   sudo systemctl enable playit
   ```
-  To fetch the single-use programmatic cryptographic activation node string, initialize the core registration binary sequence:
-```bash
-  sudo playit setup
+
+* **Step 4: Claiming the Agent to the Cloud Network**
+  *(Note: The `sudo playit setup` command has been deprecated in recent versions. The claim link is now automatically generated in the background).*
+  
+  To fetch the single-use programmatic cryptographic activation node string, check the active service logs:
+  ```bash
+  sudo systemctl status playit
   ```
-  Copy the explicit link address printed out onto the terminal stdout panel, parse it inside an active workstation web browser session, and follow the setup wizard prompt to claim the local software daemon to the cloud console network.
+  *(If the link is truncated or not fully visible, view the active log feed by running: `sudo journalctl -u playit -f`)*
+
+  Copy the explicit link address (formatted as `https://playit.gg/claim/...`) printed out onto the terminal stdout panel, parse it inside an active workstation web browser session, and follow the setup wizard prompt to claim the local software daemon to the cloud console network.
 
 #### 2. Cloud Tunnel Multiplexing & Dual-Port Allocation
 With the localized hardware agent successfully registered to the control plane, the network matrix was configured to handle incoming traffic multiplexing. Because the internal architecture runs two distinct, isolated game servers on independent sockets (`25565` and `25566`), two autonomous tunnel instances were defined inside the centralized panel interface.
@@ -738,3 +792,86 @@ External users purely input these friendly obfuscated proxy domains into their m
 #### 3. Operational State Notice: Infrastructure Cold Standby
 * **Resource Optimization Policy:** Because game server daemons and Java runtime environments continuously consume background CPU cycles and aggressively lock down RAM chunks, both the Crafty game servers and the Playit native Linux agent are strictly configured to operate in a **Cold Standby** state when not actively utilized. 
 * **State Management:** The services are kept down to guarantee 100% processing efficiency and memory overhead availability for the primary network infrastructure and data backups. However, the entire architecture remains completely provisioned, configured, and hardened; a single administrative SSH command can warm-boot the entire environment into an active, globally accessible production state within seconds.
+
+ ### 4.5 Self-Hosted Media Streaming & Transcoding (Jellyfin)
+
+To centralize media consumption and eliminate reliance on commercial streaming services (like Netflix or Spotify), **Jellyfin** was deployed as a containerized application via CasaOS. Jellyfin acts as a fully private media server, automatically scraping metadata, cinematic posters, episode summaries, and subtitles from global databases. The platform seamlessly streams content across the network to Smart TVs, mobile devices, and tablets.
+
+#### 1. Storage Architecture & Library Organization
+To ensure the media server indexes content accurately, an organized directory structure was established on the primary storage drive (`Storage1`) under the `common` shared folder. 
+
+* **Library Separation:** Dedicated folders were created for distinct media types (e.g., `Tainies` for movies, `Seires` for TV shows).
+* **Content Type Mapping:** During the initial Jellyfin setup, it was critical to map these folders to their strict respective Content Types (`Movies` vs. `Shows`). This precise mapping prevents database confusion, allowing Jellyfin to organize TV series properly by seasons and fetch correct episodic metadata rather than mistaking them for standalone movies.
+
+#### 2. Network Security & Zero-Trust Configuration
+During deployment, strict networking rules were enforced to maintain the integrity of the home firewall.
+
+* **LAN Access:** The *"Allow remote connections to this server"* option was explicitly enabled, permitting client devices within the local physical network to discover and stream from the server.
+* **UPnP & Port Forwarding Denial:** The *"Enable automatic port mapping"* option was strictly **disabled**. Permitting applications to utilize UPnP to dynamically open external ports on the Cosmote ISP router represents a critical security vulnerability. Remote access to the media server from outside the home is exclusively and securely handled by the authenticated Tailscale VPN mesh, adhering to Zero-Trust principles.
+
+#### 3. Hardware Acceleration & Linux GPU Passthrough
+*(Note: The system is configured to prioritize the dedicated NVIDIA GPU for hardware-accelerated tasks, such as real-time video transcoding, significantly offloading the CPU during high-demand media consumption).*
+
+To process heavy 4K files or stream to legacy devices that require real-time video conversion (Transcoding), the laptop's dedicated **NVIDIA GTX 1050 Ti (2GB GDDR5)** was utilized. Because Jellyfin operates within an isolated Docker container in CasaOS, the host Linux environment required specific driver modifications to expose the GPU to the containerized environment.
+
+**Executing the NVIDIA Container Toolkit Integration:**
+This is the exact sequence in which the commands must be executed in the terminal, from start to finish. Execute them one by one, waiting for the previous one to complete before moving to the next.
+
+**Part 1: Installing Nvidia Drivers**
+
+1. Update the package lists:
+```bash
+sudo apt update
+```
+
+2. Automatically install the official Nvidia drivers:
+```bash
+sudo ubuntu-drivers install
+```
+
+3. Reboot the machine/server to apply the drivers:
+```bash
+sudo reboot
+```
+*(Once the server reboots, reconnect to your terminal and proceed with Part 2.)*
+
+**Part 2: Installing the NVIDIA Container Toolkit (Docker)**
+
+4. Add the official NVIDIA Container Toolkit GPG repository key:
+```bash
+curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
+```
+
+5. Inject the repository into the local APT sources list:
+```bash
+curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list | \
+  sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
+  sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
+```
+
+6. Update the system again to recognize the new repository:
+```bash
+sudo apt update
+```
+
+7. Install the toolkit package:
+```bash
+sudo apt install -y nvidia-container-toolkit
+```
+
+8. Configure the Docker daemon to recognize the NVIDIA runtime:
+```bash
+sudo nvidia-ctk runtime configure --runtime=docker
+```
+
+9. Restart the Docker service to save the changes:
+```bash
+sudo systemctl restart docker
+```
+
+**Verification Check**
+To ensure everything was configured correctly, run the following command in the terminal:
+```bash
+nvidia-smi
+```
+*If a table appears displaying the information for the GTX 1050 Ti, you are all set and ready to open CasaOS!*
