@@ -168,6 +168,11 @@ The following parameters were uncommented and altered to `ignore`:
 ```ini
 HandleLidSwitch=ignore
 HandleLidSwitchExternalPower=ignore
+HandleLidSwitchDocked=ignore
+```
+and the last
+```ini
+LidSwitchIgnoreInhibited=no
 ```
 The daemon was then restarted to apply the changes instantly, allowing the laptop to be closed and racked:
 ```bash
