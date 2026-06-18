@@ -202,7 +202,7 @@ Through this remote SSH session, **CasaOS**—a lightweight, Docker-based orches
 ```bash
 curl -fsSL [https://get.casaos.io](https://get.casaos.io) | sudo bash
 ```
-Once CasaOS was active, the secondary 1TB internal HDD (`Storage1`) was formatted to **EXT4** via the CasaOS Web UI, optimizing it for Linux file ownership and container data storage.
+Once CasaOS was active, the secondary 1TB internal HDD (`HDD-1TB`) was formatted to **EXT4** via the CasaOS Web UI, optimizing it for Linux file ownership and container data storage.
 
 ### 3.4.1 OpenSSH Vulnerability Mitigation & SSH Hardening
 
@@ -475,7 +475,7 @@ During the initial deployment and stabilization phase, several core networking c
 The file management architecture transcends a simple Network Attached Storage (NAS) setup, functioning as a fully automated, **Zero Trust Private Cloud**. It ensures strict user isolation, automated data lifecycle management, and a robust backup strategy utilizing an external 1TB USB 3.0 drive.
 
 **1. File System & Storage Preparation**
-While Linux natively supports NTFS, the external 1TB backup drive (`Storage2`) was deliberately formatted to **EXT4** directly via the CasaOS Storage Manager. NTFS lacks native support for Linux file ownership and permissions, which could cause critical access errors for background services and Cron jobs. EXT4 guarantees maximum throughput, stability, and absolute compatibility with the Linux ecosystem.
+While Linux natively supports NTFS, the external 1TB backup drive (`EXTERNAL_HDD_1TB`) was deliberately formatted to **EXT4** directly via the CasaOS Storage Manager. NTFS lacks native support for Linux file ownership and permissions, which could cause critical access errors for background services and Cron jobs. EXT4 guarantees maximum throughput, stability, and absolute compatibility with the Linux ecosystem.
 
 <p align="center">
   <img src="./images/file_server4.png" width="75%" alt="CasaOS File Management Interface">
@@ -569,13 +569,13 @@ To prevent storage exhaustion and ensure data redundancy, the system relies on c
   The following three jobs were added to handle the Smart Trash and Backup processes:
   ```bash
   # 1. Smart Trash: Deletes files in COMMON older than 30 days (Daily at 05:00 AM)
-  0 5 * * * find "/mnt/Storage1/COMMON (SHARED)/" -mindepth 1 -mtime +30 -delete
+  0 5 * * * find "/mnt/HDD-1TB/COMMON (SHARED)/" -mindepth 1 -mtime +30 -delete
   
   # 2. Weekly Backup: Archives data to external drive without deleting old files (Sundays at 04:00 AM)
-  0 4 * * 0 rsync -av /mnt/Storage1/ "/mnt/Storage2/BACKUP FILES/"
+  0 4 * * 0 rsync -av /mnt/HDD-1TB/ "/mnt/EXTERNAL_HDD_1TB/BACKUP FILES/"
   
   # 3. Backup Purge: Deletes files in the BACKUP's COMMON folder older than 90 days (Daily at 06:00 AM)
-  0 6 * * * find "/mnt/Storage2/BACKUP FILES/COMMON (SHARED)/" -mindepth 1 -mtime +90 -delete
+  0 6 * * * find "/mnt/EXTERNAL_HDD_1TB/BACKUP FILES/COMMON (SHARED)/" -mindepth 1 -mtime +90 -delete
   ```
 
 **4. Dual Access Strategy (Smart Routing)**
@@ -593,7 +593,7 @@ Accessing the server files is optimized through a Split Tunneling approach. Loca
 #### Troubleshooting & Problem Resolution
 * **Physical Layer Packet Loss (VPN Instability):** The Tailscale VPN experienced frequent, random disconnects. Diagnosis revealed the TP-Link switch port indicator was Orange (10/100Mbps) instead of Green (1000Mbps). A physical contact issue in the Cat6a ethernet cable pins caused the auto-negotiation to drop to 100Mbps, resulting in micro-packet loss. While basic web browsing masked the packet loss via retransmissions, the strict WireGuard encrypted tunnel collapsed. Reseating the cable restored the Gigabit link and permanently stabilized the VPN.
 * **Windows SMB Caching ("This folder is empty" error):** When adjusting folder sharing through the CasaOS UI, the Samba daemon hierarchy broke. Even after manual `smb.conf` deployment, Windows client machines displayed an empty network drive. This was resolved by forcing Windows to flush its SMB cache by deleting all existing server entries in the Windows Credential Manager, executing an "Unshare" action in the CasaOS UI, and issuing `sudo systemctl restart smbd`.
-* **Cron `-mtime` Logic Misinterpretation & Linux Case-Sensitivity:** An initial assumption was made that the 30-day purge script had failed because a file (`word.zip`) remained in the COMMON folder. Debugging commenced by verifying the exact file name using `ls -lh "/mnt/Storage1/COMMON (SHARED)/"` (to account for strict Linux case-sensitivity). Using the `stat "/mnt/Storage1/COMMON (SHARED)/word.zip"` command in the terminal revealed the file's `Modify` timestamp was exactly 24 days old. A subsequent dry run using `find ... -mtime +30` (without the `-delete` flag) confirmed the script was executing flawlessly, correctly ignoring files that had not strictly crossed the 30-day threshold.
+* **Cron `-mtime` Logic Misinterpretation & Linux Case-Sensitivity:** An initial assumption was made that the 30-day purge script had failed because a file (`word.zip`) remained in the COMMON folder. Debugging commenced by verifying the exact file name using `ls -lh "/mnt/HDD-1TB/COMMON (SHARED)/"` (to account for strict Linux case-sensitivity). Using the `stat "/mnt/HDD-1TB/COMMON (SHARED)/word.zip"` command in the terminal revealed the file's `Modify` timestamp was exactly 24 days old. A subsequent dry run using `find ... -mtime +30` (without the `-delete` flag) confirmed the script was executing flawlessly, correctly ignoring files that had not strictly crossed the 30-day threshold.
 
 ### 4.3 Zero-Trust Mesh VPN & Gateway Routing (Tailscale)
 
@@ -803,7 +803,7 @@ External users purely input these friendly obfuscated proxy domains into their m
 To centralize media consumption and eliminate reliance on commercial streaming services (like Netflix or Spotify), **Jellyfin** was deployed as a containerized application via CasaOS. Jellyfin acts as a fully private media server, automatically scraping metadata, cinematic posters, episode summaries, and subtitles from global databases. The platform seamlessly streams content across the network to Smart TVs, mobile devices, and tablets.
 
 #### 1. Storage Architecture & Library Organization
-To ensure the media server indexes content accurately, an organized directory structure was established on the primary storage drive (`Storage1`) under the `common` shared folder. 
+To ensure the media server indexes content accurately, an organized directory structure was established on the primary storage drive (`HDD-1TB`) under the `common` shared folder. 
 
 * **Library Separation:** Dedicated folders were created for distinct media types (e.g., `Tainies` for movies, `Seires` for TV shows).
 * **Content Type Mapping:** During the initial Jellyfin setup, it was critical to map these folders to their strict respective Content Types (`Movies` vs. `Shows`). This precise mapping prevents database confusion, allowing Jellyfin to organize TV series properly by seasons and fetch correct episodic metadata rather than mistaking them for standalone movies.
