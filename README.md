@@ -502,17 +502,41 @@ To enforce strict privacy among family members, the default CasaOS UI sharing me
   sudo smbpasswd -a <password> //for panagiotis
   ```
 
+* **OS-Level Ownership & Group Management (Linux vs. Samba Integration):** To ensure the underlying EXT4 file system respects the Samba network policies, explicit directory ownership had to be assigned. A shared group was created for the common directory, while personal directories were strictly chowned to their respective users to prevent read-only lockouts:
+
+  ```bash
+  # Create a unified group for the shared directory
+  sudo groupadd family_share
+  sudo usermod -aG family_share raphael
+  sudo usermod -aG family_share christina
+  sudo usermod -aG family_share markella
+  sudo usermod -aG family_share panagiotis
+
+  # Assign absolute ownership of personal directories to individual users
+  sudo chown -R raphael:raphael /mnt/HDD-1TB/RAFAIL
+  sudo chown -R christina:christina /mnt/HDD-1TB/CHRISTINA
+  sudo chown -R markella:markella /mnt/HDD-1TB/MARKELLA
+  sudo chown -R panagiotis:panagiotis /mnt/HDD-1TB/PANAGIOTIS
+
+  # Assign group ownership and read/write/execute permissions to the common directory
+  sudo chown -R root:family_share "/mnt/HDD-1TB/COMMON (SHARED)"
+  sudo 
+  ```
+ 
 * **Samba Isolation (The Configuration File):** The main Samba configuration file was opened via the terminal:
   ```bash
   sudo nano /etc/samba/smb.conf
   ```
-  At the very end of the file, the following strict access rules were appended to lock personal directories behind the `valid users` directive, while keeping the `COMMON (SHARED)` directory open for family exchange:
+  At the very end of the file, strict access rules were appended. Personal directories were locked behind the valid users directive, while the COMMON directory utilized force group and specific permission masks to guarantee inherited write privileges for all family members:
   ```ini
   [COMMON]
      path = /mnt/HDD-1TB/COMMON (SHARED)
      browsable = yes
      writable = yes
      valid users = raphael, christina, markella, panagiotis
+     force group = family_share
+     create mask = 0775
+     directory mask = 0775
 
   [RAFAIL]
      path = /mnt/HDD-1TB/RAFAIL
@@ -527,16 +551,16 @@ To enforce strict privacy among family members, the default CasaOS UI sharing me
      valid users = christina
 
   [MARKELLA]
-     path = /mnt/HDD-1TB/MARKELLA
-     browsable = yes
-     writable = yes
-     valid users = markella
+    path = /mnt/HDD-1TB/MARKELLA
+    browsable = yes
+    writable = yes
+    valid users = markella
 
   [PANAGIOTIS]
-     path = /mnt/HDD-1TB/PANAGIOTIS
-     browsable = yes
-     writable = yes
-     valid users = panagiotis
+    path = /mnt/HDD-1TB/PANAGIOTIS
+    browsable = yes
+    writable = yes
+    valid users = panagiotis
   ```
   After saving the file (`Ctrl+O`, `Enter`, `Ctrl+X`), the Samba service was restarted to apply the new architecture:
   ```bash
