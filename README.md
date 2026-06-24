@@ -845,11 +845,23 @@ External users purely input these friendly obfuscated proxy domains into their m
 
 To centralize media consumption and eliminate reliance on commercial streaming services (like Netflix or Spotify), **Jellyfin** was deployed as a containerized application via CasaOS. Jellyfin acts as a fully private media server, automatically scraping metadata, cinematic posters, episode summaries, and subtitles from global databases. The platform seamlessly streams content across the network to Smart TVs, mobile devices, and tablets.
 
+<p align="center">
+  <img src="./images/jellyfin_1.png" width="90%" alt="Jellyfin Administrator Dashboard">
+</p>
+
+> *Figure 17: The Jellyfin administrative dashboard displaying the active server version, live client activity, and mapped container cache paths.*
+
 #### 1. Storage Architecture & Library Organization
 To ensure the media server indexes content accurately, an organized directory structure was established on the primary storage drive (`HDD-1TB`) under the `common` shared folder. 
 
 * **Library Separation:** Dedicated folders were created for distinct media types (e.g., `Tainies` for movies, `Seires` for TV shows).
 * **Content Type Mapping:** During the initial Jellyfin setup, it was critical to map these folders to their strict respective Content Types (`Movies` vs. `Shows`). This precise mapping prevents database confusion, allowing Jellyfin to organize TV series properly by seasons and fetch correct episodic metadata rather than mistaking them for standalone movies.
+
+<p align="center">
+  <img src="./images/jellyfin_2.png" width="85%" alt="Jellyfin Client UI Library View">
+</p>
+
+> *Figure 18: The client-side interface reflecting the strict library separation (Movies, Music, Shows) successfully enforced during the directory mapping phase.*
 
 #### 2. Network Security & Zero-Trust Configuration
 During deployment, strict networking rules were enforced to maintain the integrity of the home firewall.
@@ -870,7 +882,6 @@ This is the exact sequence in which the commands must be executed in the termina
 1. Update the package lists:
 ```bash
 sudo apt update
-```
 
 2. Automatically install the official Nvidia drivers:
 ```bash
@@ -923,3 +934,16 @@ To ensure everything was configured correctly, run the following command in the 
 nvidia-smi
 ```
 *If a table appears displaying the information for the GTX 1050 Ti, you are all set and ready to open CasaOS.*
+
+#### 4. Jellyfin Transcoding Optimization (NVENC)
+With the GTX 1050 Ti successfully passed through to the Docker container, Jellyfin's internal playback settings were meticulously optimized to leverage the GPU for hardware-accelerated video decoding and encoding. This ensures smooth playback across all network devices while keeping the host CPU utilization near zero.
+
+The following parameters were hardcoded within the Jellyfin Dashboard -> Playback settings:
+
+* **Hardware Acceleration API:** Set to **Nvidia NVENC**.
+* **Hardware Decoding:** Enabled across all supported codecs (H264, HEVC, MPEG2, VC1, VP9, HEVC 10bit, and VP9 10bit) to maximize hardware offloading.
+* **Enhanced NVDEC Decoder:** Enabled to leverage Nvidia's advanced decoding implementation.
+* **Hardware Encoding:** Enabled, specifically allowing **HEVC format encoding** for superior bandwidth efficiency. *(Note: AV1 encoding was deliberately left unchecked, as it is natively unsupported by the Pascal/GTX 10-series architecture)*.
+* **Tone Mapping:** Enabled (utilizing the BT.2390 algorithm) to accurately transcode HDR10/DoVi content down to SDR displays without washing out the cinematic colors.
+* **Subtitle Extraction:** Enabled on the fly to prevent the video playback from stalling during text extraction processes.
+* **Throttle Transcodes:** Enabled. This is a critical power-management setting that pauses the GPU transcoder once a sufficient playback buffer (configured to 180 seconds) is built, significantly reducing power consumption, thermal output, and preventing continuous 100% GPU utilization.
