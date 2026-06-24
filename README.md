@@ -708,6 +708,12 @@ To validate the integrity of the Zero-Trust mesh and the routing speed, exhausti
 
 Beyond core network infrastructure and file systems, the homelab is architected to operate as a high-performance entertainment hub. To host private, persistent multiplayer sessions without impacting production services, **Crafty Controller** was deployed via Docker. Crafty acts as an advanced, web-based daemon and orchestration panel that allows for the simultaneous deployment, monitoring, and hard-resource capping of multiple isolated game server instances from a single, unified graphical interface.
 
+<p align="center">
+  <img src="./images/crafty_1.png" width="90%" alt="Crafty Controller Unified Dashboard">
+</p>
+
+> *Figure X: The Crafty Controller unified dashboard managing both the Primary (Local) and Secondary (Public) isolated Minecraft instances, efficiently operating with minimal CPU overhead.*
+
 #### 1. Bare-Metal Storage Strategy & I/O Performance Optimization
 Game servers, particularly Minecraft Java Edition, are notoriously heavy on disk Read/Write operations due to constant chunk generation, world saving, and player position logging. Utilizing a mechanical drive for this task introduces catastrophic performance bottlenecks (TPS drops, block lag).
 
@@ -725,6 +731,12 @@ To accommodate different game modes (e.g., a pure Vanilla survival world alongsi
 * **Minecraft Server 2 (Secondary Instance):** Provisioned for experimental maps or alternative versions. To prevent a port binding conflict, the application configuration was manually altered to bind to the subsequent network socket:
   * Internal IP Protocol: `127.0.0.1` (Localhost)
   * Bound Port: **`25566`** (TCP/UDP)
+
+<p align="center">
+  <img src="./images/crafty_2.png" width="90%" alt="Crafty Controller Live Terminal & RAM Monitoring">
+</p>
+
+> *Figure Y: Live interactive terminal and resource monitoring for the primary game instance. The dashboard confirms the strict memory allocation policy is actively respected (currently utilizing 1.6GB RAM).*
 
 #### 4.4.1 Secure Public Exposure & Tunneling Architecture (Playit.gg)
 Exposing these local game instances to external players presents a significant security risk. Traditional methods dictate utilizing **Port Forwarding** on the ISP router. However, this approach explicitly exposes the residential public WAN IP address to the open web, inviting persistent automated port scans, brute-force exploitation attempts, and catastrophic Distributed Denial of Service (DDoS) attacks. Furthermore, under Carrier-Grade NAT (CGNAT) environments, inbound port forwarding is physically blocked by the ISP.
@@ -764,12 +776,18 @@ The deployment of the Playit.gg agent onto the Linux server is fully automated u
   *(Note: The `sudo playit setup` command has been deprecated in recent versions. The claim link is now automatically generated in the background).*
   
   To fetch the single-use programmatic cryptographic activation node string, check the active service logs:
-  ```bash
+```bash
   sudo systemctl status playit
   ```
   *(If the link is truncated or not fully visible, view the active log feed by running: `sudo journalctl -u playit -f`)*
 
   Copy the explicit link address (formatted as `https://playit.gg/claim/...`) printed out onto the terminal stdout panel, parse it inside an active workstation web browser session, and follow the setup wizard prompt to claim the local software daemon to the cloud console network.
+
+<p align="center">
+  <img src="./images/playit_agent.png" width="85%" alt="Playit Linux Daemon Active Terminal Stream">
+</p>
+
+> *Figure 12: The local Playit agent running via the server terminal, displaying the live v1.0.10 connection stream, active TCP client handshakes, and the successful dual-tunnel port mappings down to sockets 25565 and 25566. Command: "playit"*
 
 #### 2. Cloud Tunnel Multiplexing & Dual-Port Allocation
 With the localized hardware agent successfully registered to the control plane, the network matrix was configured to handle incoming traffic multiplexing. Because the internal architecture runs two distinct, isolated game servers on independent sockets (`25565` and `25566`), two autonomous tunnel instances were defined inside the centralized panel interface.
@@ -781,7 +799,7 @@ With the localized hardware agent successfully registered to the control plane, 
   <img src="./images/playit4.png" width="85%" alt="Playit Cloud Management Dashboard Master View">
 </p>
 
-> *Figure 12: The master overview interface displaying the registered Linux hardware daemon synchronized with the account profile context.*
+> *Figure 13: The master overview interface displaying the registered Linux hardware daemon synchronized with the account profile context.*
 
 * **Evaluating Agent Parameters & Connection Architecture:**
   The underlying telemetry sheet verifies the structural properties of the background service daemon thread, registering the loopback network translation pathways.
