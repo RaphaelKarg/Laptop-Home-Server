@@ -502,17 +502,41 @@ To enforce strict privacy among family members, the default CasaOS UI sharing me
   sudo smbpasswd -a <password> //for panagiotis
   ```
 
+* **OS-Level Ownership & Group Management (Linux vs. Samba Integration):** To ensure the underlying EXT4 file system respects the Samba network policies, explicit directory ownership had to be assigned. A shared group was created for the common directory, while personal directories were strictly chowned to their respective users to prevent read-only lockouts:
+
+  ```bash
+  # Create a unified group for the shared directory
+  sudo groupadd family_share
+  sudo usermod -aG family_share raphael
+  sudo usermod -aG family_share christina
+  sudo usermod -aG family_share markella
+  sudo usermod -aG family_share panagiotis
+
+  # Assign absolute ownership of personal directories to individual users
+  sudo chown -R raphael:raphael /mnt/HDD-1TB/RAFAIL
+  sudo chown -R christina:christina /mnt/HDD-1TB/CHRISTINA
+  sudo chown -R markella:markella /mnt/HDD-1TB/MARKELLA
+  sudo chown -R panagiotis:panagiotis /mnt/HDD-1TB/PANAGIOTIS
+
+  # Assign group ownership and read/write/execute permissions to the common directory
+  sudo chown -R root:family_share "/mnt/HDD-1TB/COMMON (SHARED)"
+  sudo 
+  ```
+ 
 * **Samba Isolation (The Configuration File):** The main Samba configuration file was opened via the terminal:
   ```bash
   sudo nano /etc/samba/smb.conf
   ```
-  At the very end of the file, the following strict access rules were appended to lock personal directories behind the `valid users` directive, while keeping the `COMMON (SHARED)` directory open for family exchange:
+  At the very end of the file, strict access rules were appended. Personal directories were locked behind the valid users directive, while the COMMON directory utilized force group and specific permission masks to guarantee inherited write privileges for all family members:
   ```ini
   [COMMON]
      path = /mnt/HDD-1TB/COMMON (SHARED)
      browsable = yes
      writable = yes
      valid users = raphael, christina, markella, panagiotis
+     force group = family_share
+     create mask = 0775
+     directory mask = 0775
 
   [RAFAIL]
      path = /mnt/HDD-1TB/RAFAIL
@@ -527,16 +551,16 @@ To enforce strict privacy among family members, the default CasaOS UI sharing me
      valid users = christina
 
   [MARKELLA]
-     path = /mnt/HDD-1TB/MARKELLA
-     browsable = yes
-     writable = yes
-     valid users = markella
+    path = /mnt/HDD-1TB/MARKELLA
+    browsable = yes
+    writable = yes
+    valid users = markella
 
   [PANAGIOTIS]
-     path = /mnt/HDD-1TB/PANAGIOTIS
-     browsable = yes
-     writable = yes
-     valid users = panagiotis
+    path = /mnt/HDD-1TB/PANAGIOTIS
+    browsable = yes
+    writable = yes
+    valid users = panagiotis
   ```
   After saving the file (`Ctrl+O`, `Enter`, `Ctrl+X`), the Samba service was restarted to apply the new architecture:
   ```bash
@@ -594,6 +618,7 @@ Accessing the server files is optimized through a Split Tunneling approach. Loca
 * **Physical Layer Packet Loss (VPN Instability):** The Tailscale VPN experienced frequent, random disconnects. Diagnosis revealed the TP-Link switch port indicator was Orange (10/100Mbps) instead of Green (1000Mbps). A physical contact issue in the Cat6a ethernet cable pins caused the auto-negotiation to drop to 100Mbps, resulting in micro-packet loss. While basic web browsing masked the packet loss via retransmissions, the strict WireGuard encrypted tunnel collapsed. Reseating the cable restored the Gigabit link and permanently stabilized the VPN.
 * **Windows SMB Caching ("This folder is empty" error):** When adjusting folder sharing through the CasaOS UI, the Samba daemon hierarchy broke. Even after manual `smb.conf` deployment, Windows client machines displayed an empty network drive. This was resolved by forcing Windows to flush its SMB cache by deleting all existing server entries in the Windows Credential Manager, executing an "Unshare" action in the CasaOS UI, and issuing `sudo systemctl restart smbd`.
 * **Cron `-mtime` Logic Misinterpretation & Linux Case-Sensitivity:** An initial assumption was made that the 30-day purge script had failed because a file (`word.zip`) remained in the COMMON folder. Debugging commenced by verifying the exact file name using `ls -lh "/mnt/HDD-1TB/COMMON (SHARED)/"` (to account for strict Linux case-sensitivity). Using the `stat "/mnt/HDD-1TB/COMMON (SHARED)/word.zip"` command in the terminal revealed the file's `Modify` timestamp was exactly 24 days old. A subsequent dry run using `find ... -mtime +30` (without the `-delete` flag) confirmed the script was executing flawlessly, correctly ignoring files that had not strictly crossed the 30-day threshold.
+* **Samba vs. Linux File Permissions Conflict (Read-Only Error):** Initially, non-admin users successfully authenticated into the Samba shares but were denied write/modify access (e.g., unable to transfer or delete files). Diagnosis revealed a critical desynchronization between the Network Layer permissions (Samba) and the OS Layer permissions (EXT4). While `smb.conf` permitted network entry, the underlying physical Linux directories were still owned by the `root` user, overriding network rules. The issue was permanently resolved by creating a dedicated `family_share` group, applying strict `chown -R` ownership rules to map physical directories to their specific owners, and injecting `force group` and `0775` permission masks within the `smb.conf` file to sync Linux rules with Samba network policies.
 
 ### 4.3 Zero-Trust Mesh VPN & Gateway Routing (Tailscale)
 
@@ -879,4 +904,4 @@ To ensure everything was configured correctly, run the following command in the 
 ```bash
 nvidia-smi
 ```
-*If a table appears displaying the information for the GTX 1050 Ti, you are all set and ready to open CasaOS!*
+*If a table appears displaying the information for the GTX 1050 Ti, you are all set and ready to open CasaOS.*
