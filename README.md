@@ -993,5 +993,18 @@ To maintain complete visibility over the physical and wireless Local Area Networ
 <a id="5-future-expansions"></a>
 ## 5. Future Expansions
 
+A homelab is inherently an ongoing journey rather than a finished product. While the current infrastructure fulfills all initial project goals securely and efficiently, several logical expansions are planned as the household's digital needs evolve:
+
+* **Hardware RAM Upgrade:** The system currently operates on a strict memory budget (8GB). Populating the empty SODIMM slot to upgrade the system to 16GB or 32GB will provide significant breathing room, allowing for the deployment of heavier Docker containers and more concurrent game server instances without risking OOM (Out of Memory) terminations.
+* **The 3-2-1 Backup Strategy:** While the current automated local backup to the external 1TB USB drive protects against drive failure or accidental deletion, it does not protect against physical disasters (theft, fire, power surges). A future goal is to implement an offsite backup, either by encrypting data and sending it to a secure cloud bucket (like Backblaze B2) or by deploying a secondary remote node (e.g., at a relative's house) connected securely via Tailscale.
+* **Home Automation (Home Assistant):** To further the "De-Clouding" vision, deploying Home Assistant would allow the family to strip IoT devices (smart TVs, local switches, cameras) away from proprietary vendor clouds, centralizing their control locally for better privacy and faster response times.
+* **Advanced Telemetry & Analytics:** While CasaOS and NetAlertX provide excellent real-time overviews, deploying a dedicated metrics stack (such as Prometheus + Grafana) will allow for historical tracking of the hardware's health (especially laptop thermal metrics, GPU usage, and network traffic over time).
+
 <a id="6-conclusions"></a>
 ## 6. Conclusions
+
+This project successfully proves that achieving digital sovereignty and "De-Clouding" does not require enterprise budgets or massive, power-hungry rack servers. By upcycling an aging gaming laptop, an idle piece of hardware was given a second life, preventing e-waste while ingeniously utilizing its built-in battery as a native UPS. 
+
+Building this homelab was an intensive learning curve that bridged the gap between theoretical networking and practical Systems Administration. It required navigating low-level Linux hardware quirks (EFI/NVRAM patching), managing Docker networking layers, resolving complex OSI Layer 7 permission conflicts (Samba vs. EXT4), and responding in real-time to Zero-Day security disclosures (OpenSSH). 
+
+Today, this laptop sits silently in a rack, serving as the digital backbone for an entire household. It seamlessly filters out thousands of malicious web requests daily, provides a secure Zero-Trust gateway for remote access, safely stores family memories, and serves as an independent entertainment hub. Ultimately, this project transitions the user from being a passive consumer of Big Tech services to becoming the absolute owner and administrator of their own digital footprint.
