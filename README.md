@@ -37,6 +37,7 @@
 
 ---
 
+<a id="1-abstract"></a>
 ## 1. Abstract
 
 This project presents the architecture, deployment, and documentation of a comprehensive, self-hosted **Homelab** tailored specifically for my large family's residence. Designed to achieve digital sovereignty and complete independence from commercial public clouds (*De-Clouding*), the system is built to facilitate the everyday digital needs of our household, offering easy data management, robust security, and centralized entertainment.
