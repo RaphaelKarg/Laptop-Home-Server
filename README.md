@@ -56,14 +56,17 @@ Ultimately, this homelab serves as a centralized hub demonstrating how enterpris
 
 ---
 
+<a id="2-project-introduction"></a>
 ## 2. Project Introduction
 
+<a id="21-vision-purpose"></a>
 ### 2.1 Vision & Purpose
 
 In an era where personal and digital lives are increasingly reliant on commercial tech giants (Big Tech), the core vision of this project is **"De-Clouding"**—the deliberate migration away from public cloud services (such as Google Drive, iCloud, or Dropbox) to regain absolute control over personal data. 
 
 Beyond data sovereignty, this project is driven by a commitment to resourcefulness and sustainability. By **upcycling an aging personal laptop** that would have otherwise been left idle after a recent equipment upgrade, the project actively prevents electronic waste (e-waste) and transforms older hardware into a powerful, centralized network hub. The purpose is to prove that enterprise-grade security, seamless data syncing, and high-quality digital services can be achieved at home without expensive hardware or monthly subscription fees.
 
+<a id="22-theoretical-background-linux-self-hosting"></a>
 ### 2.2 Theoretical Background (Linux & Self-Hosting)
 
 To understand the architecture of this homelab, two core concepts must be defined:
@@ -71,6 +74,7 @@ To understand the architecture of this homelab, two core concepts must be define
 * **Self-Hosting:** This is the practice of running and maintaining software applications on your own private server rather than consuming them as Software-as-a-Service (SaaS) from third parties. Self-hosting shifts the paradigm from "renting digital space" to "owning your digital infrastructure," guaranteeing that data never leaves the local network unless explicitly authorized.
 * **Linux as the Foundation:** The server is powered by a minimal Linux distribution. Linux is the undisputed industry standard for server environments due to its open-source nature, unparalleled stability, and low resource overhead. By combining Linux with the **CasaOS** platform, the system utilizes **Docker containerization**. Containers ensure that every service runs in its own isolated environment with its own dependencies, preventing system conflicts and allowing for effortless updates and scalability.
 
+<a id="23-project-goals"></a>
 ### 2.3 Project Goals
 
 The implementation of this laptop-based homelab was guided by the following concrete objectives:
@@ -83,10 +87,12 @@ The implementation of this laptop-based homelab was guided by the following conc
 
 ---
 
+<a id="3-system-architecture-infrastructure"></a>
 ## 3. System Architecture & Infrastructure
 
 This section outlines the physical and logical layers of the homelab, detailing the network topology, the upcycled hardware acting as the core server, the bare-metal provisioning process, and the underlying software environment.
 
+<a id="31-physical-network-topology"></a>
 ### 3.1 Physical Network Topology
 
 The network is designed to support a large household (6 individuals) with numerous concurrent devices, ensuring high throughput, minimal latency, and future scalability. The foundation of the external connection is a Fiber-to-the-Home (FTTH) line providing speeds of **1000/500 Mbps**.
@@ -106,6 +112,7 @@ To maintain network stability and avoid conflicts, a strict IP allocation strate
 * **Wired (Ethernet via Switch):** 2x Desktop PCs, 1x Laptop, and the central Homelab Server (`192.168.1.2`).
 * **Wireless (Wi-Fi 6 via Router):** 1x Smart TV, 2x Tablets, and 4-5 Smartphones.
 
+<a id="32-server-hardware"></a>
 ### 3.2 Server Hardware
 
 The core of the homelab is built upon a repurposed gaming laptop. This upcycling strategy provides a massive advantage for server hosting: the internal 6-Cell battery acts as a built-in Uninterruptible Power Supply (UPS), guaranteeing graceful shutdowns during power outages.
@@ -131,6 +138,7 @@ The core of the homelab is built upon a repurposed gaming laptop. This upcycling
 
 *(Note: The system is configured to prioritize the dedicated NVIDIA GPU for hardware-accelerated tasks, such as real-time video transcoding, significantly offloading the CPU during high-demand media consumption).*
 
+<a id="33-bare-metal-provisioning-efi-troubleshooting"></a>
 ### 3.3 Bare-Metal Provisioning & EFI Troubleshooting
 
 To maximize hardware efficiency, a "bare-metal to container" approach was adopted, utilizing **Ubuntu Server 24.04 LTS** as the host operating system. The installation required specific BIOS adjustments and low-level EFI troubleshooting to bypass hardware-specific bugs.
@@ -159,6 +167,7 @@ reboot
 ```
 Following this patch, the system booted flawlessly, and the bare-metal installation was completed on the 120GB SSD.
 
+<a id="34-headless-server-configuration-casaos-deployment"></a>
 ### 3.4 Headless Server Configuration & CasaOS Deployment
 
 Once the OS was installed, the laptop needed to be converted into a true "Headless Server"—capable of operating 24/7 with the physical lid closed, managed entirely via remote SSH.
@@ -209,6 +218,7 @@ curl -fsSL [https://get.casaos.io](https://get.casaos.io) | sudo bash
 ```
 Once CasaOS was active, the secondary 1TB internal HDD (`HDD-1TB`) was formatted to **EXT4** via the CasaOS Web UI, optimizing it for Linux file ownership and container data storage.
 
+<a id="341-openssh-vulnerability-mitigation-ssh-hardening"></a>
 ### 3.4.1 OpenSSH Vulnerability Mitigation & SSH Hardening
 
 As the server transitioned to a fully headless operating model, SSH became the primary method of remote administration. Securing the service was therefore considered essential for maintaining the overall security of the homelab environment.
@@ -252,6 +262,7 @@ sudo systemctl restart ssh
 
 This hardening procedure significantly reduced the risk of unauthorized access, brute-force attacks, and privilege-escalation attempts while ensuring secure long-term remote administration of the server.
 
+<a id="35-repository-server-directory-structure"></a>
 ### 3.5 Repository & Server Directory Structure
 
 To maintain organization and ensure the infrastructure is easily reproducible, the repository and server configuration files are structured as follows:
@@ -277,6 +288,7 @@ Laptop-Home-Server/
 └── README.md                    # This master documentation file
 ```
 
+<a id="36-host-network-configuration-os-level-hardening"></a>
 ### 3.6 Host Network Configuration & OS-Level Hardening
 
 To ensure absolute network stability, redundancy, and maximum security against local or external threat vectors, the server's network interfaces (Ethernet and Wi-Fi) were statically configured directly via **Netplan**. Relying on dynamic addressing (DHCP) for core infrastructure introduces unnecessary attack surfaces and vulnerabilities.
@@ -392,6 +404,7 @@ Although the Wi-Fi interface (`wlp2s0`) was fully configured in Netplan with a s
     ip link show wlp2s0
     ```
 
+<a id="4-services-analysis-implementation-troubleshooting"></a>
 ## 4. Services Analysis (Implementation & Troubleshooting)
 
 This section delves into the core software services that transform the physical hardware into a fully functional, self-hosted cloud environment. 
@@ -405,6 +418,7 @@ This architectural choice provides several critical advantages for a homelab env
 
 In the following subsections, each core service is analyzed individually. The documentation covers the specific **Implementation** strategy (deployment logic, network configurations, and family use cases) along with the **Troubleshooting** steps taken to overcome technical hurdles during the initial setup process.
 
+<a id="41-adguard-home-quad9-doh-security-server"></a>
 ### 4.1 AdGuard Home & Quad9 DoH (Security Server)
 
 The foundation of the homelab's network security is **AdGuard Home**, acting as a network-wide DNS sinkhole. By pointing the ISP router's primary DHCP DNS settings to the laptop server's IP (`192.168.1.2`), every device connected to the network—from desktop PCs and smartphones to the LG WebOS Smart TV—automatically routes its DNS queries through this container. This eliminates the need to install individual ad-blockers on separate client devices.
@@ -475,6 +489,7 @@ During the initial deployment and stabilization phase, several core networking c
 * **Reverse DNS Anomalies:** Public IPs (such as Google's `8.8.8.8`) were polluting the local query logs because AdGuard defaulted to public servers for internal Reverse DNS lookups. This was rectified by explicitly assigning the ISP Router (`192.168.1.1`) as the sole Private Reverse DNS resolver, ensuring accurate identification of local hostnames.
 * **Upstream Latency Spikes:** Initial configurations relying on a single upstream provider (Cloudflare) via Load-Balancing resulted in sluggish response times (~199ms). Introducing Quad9 as an additional upstream and switching to a "Parallel requests" algorithm drastically reduced average lookup times to ~42ms.
 
+<a id="42-file-server-automations-backup-strategy-nas"></a>
 ### 4.2 File Server, Automations & Backup Strategy (NAS)
 
 The file management architecture transcends a simple Network Attached Storage (NAS) setup, functioning as a fully automated, **Zero Trust Private Cloud**. It ensures strict user isolation, automated data lifecycle management, and a robust backup strategy utilizing an external 1TB USB 3.0 drive.
@@ -625,7 +640,8 @@ Accessing the server files is optimized through a Split Tunneling approach. Loca
 * **Cron `-mtime` Logic Misinterpretation & Linux Case-Sensitivity:** An initial assumption was made that the 30-day purge script had failed because a file (`word.zip`) remained in the COMMON folder. Debugging commenced by verifying the exact file name using `ls -lh "/mnt/HDD-1TB/COMMON (SHARED)/"` (to account for strict Linux case-sensitivity). Using the `stat "/mnt/HDD-1TB/COMMON (SHARED)/word.zip"` command in the terminal revealed the file's `Modify` timestamp was exactly 24 days old. A subsequent dry run using `find ... -mtime +30` (without the `-delete` flag) confirmed the script was executing flawlessly, correctly ignoring files that had not strictly crossed the 30-day threshold.
 * **Samba vs. Linux File Permissions Conflict (Read-Only Error):** Initially, non-admin users successfully authenticated into the Samba shares but were denied write/modify access (e.g., unable to transfer or delete files). Diagnosis revealed a critical desynchronization between the Network Layer permissions (Samba) and the OS Layer permissions (EXT4). While `smb.conf` permitted network entry, the underlying physical Linux directories were still owned by the `root` user, overriding network rules. The issue was permanently resolved by creating a dedicated `family_share` group, applying strict `chown -R` ownership rules to map physical directories to their specific owners, and injecting `force group` and `0775` permission masks within the `smb.conf` file to sync Linux rules with Samba network policies.
 
-### 4.3 Zero-Trust Mesh VPN & Gateway Routing (Tailscale)
+<a id="43-tailscale-mesh-vpn"></a>
+### 4.3 Tailscale (Mesh VPN)
 
 To securely manage the homelab remotely and bypass Carrier-Grade NAT (CGNAT) without exposing vulnerable ports to the public internet, **Tailscale** (a WireGuard-based Mesh VPN) was implemented. This setup provides a Zero-Trust Network Access (ZTNA) overlay, allowing end-to-end encrypted peer-to-peer (P2P) connections globally.
 
@@ -709,7 +725,8 @@ To validate the integrity of the Zero-Trust mesh and the routing speed, exhausti
 
 > *Figure 11: The final state of the Tailscale dashboard, displaying the obfuscated VPN IPs, the core server with all active routing badges (`Shared out`, `Expiry disabled`, `Subnets`, `Exit Node`), and the associated client devices.*
 
-### 4.4 Game Server Architecture & Multi-Instance Management (Crafty Controller)
+<a id="44-game-server-management-crafty-playitgg"></a>
+### 4.4 Game Server Management (Crafty) & Playit.gg
 
 Beyond core network infrastructure and file systems, the homelab is architected to operate as a high-performance entertainment hub. To host private, persistent multiplayer sessions without impacting production services, **Crafty Controller** was deployed via Docker. Crafty acts as an advanced, web-based daemon and orchestration panel that allows for the simultaneous deployment, monitoring, and hard-resource capping of multiple isolated game server instances from a single, unified graphical interface.
 
@@ -743,6 +760,7 @@ To accommodate different game modes (e.g., a pure Vanilla survival world alongsi
 
 > *Figure Y: Live interactive terminal and resource monitoring for the primary game instance. The dashboard confirms the strict memory allocation policy is actively respected (currently utilizing 1.6GB RAM).*
 
+<a id="441-secure-public-exposure-tunneling-architecture-playitgg"></a>
 #### 4.4.1 Secure Public Exposure & Tunneling Architecture (Playit.gg)
 Exposing these local game instances to external players presents a significant security risk. Traditional methods dictate utilizing **Port Forwarding** on the ISP router. However, this approach explicitly exposes the residential public WAN IP address to the open web, inviting persistent automated port scans, brute-force exploitation attempts, and catastrophic Distributed Denial of Service (DDoS) attacks. Furthermore, under Carrier-Grade NAT (CGNAT) environments, inbound port forwarding is physically blocked by the ISP.
 
@@ -846,7 +864,8 @@ External users purely input these friendly obfuscated proxy domains into their m
 * **Resource Optimization Policy:** Because game server daemons and Java runtime environments continuously consume background CPU cycles and aggressively lock down RAM chunks, both the Crafty game servers and the Playit native Linux agent are strictly configured to operate in a **Cold Standby** state when not actively utilized. 
 * **State Management:** The services are kept down to guarantee 100% processing efficiency and memory overhead availability for the primary network infrastructure and data backups. However, the entire architecture remains completely provisioned, configured, and hardened; a single administrative SSH command can warm-boot the entire environment into an active, globally accessible production state within seconds.
 
- ### 4.5 Self-Hosted Media Streaming & Transcoding (Jellyfin)
+<a id="45-media-server-jellyfin"></a>
+### 4.5 Media Server (Jellyfin)
 
 To centralize media consumption and eliminate reliance on commercial streaming services (like Netflix or Spotify), **Jellyfin** was deployed as a containerized application via CasaOS. Jellyfin acts as a fully private media server, automatically scraping metadata, cinematic posters, episode summaries, and subtitles from global databases. The platform seamlessly streams content across the network to Smart TVs, mobile devices, and tablets.
 
@@ -953,7 +972,8 @@ The following parameters were hardcoded within the Jellyfin Dashboard -> Playbac
 * **Subtitle Extraction:** Enabled on the fly to prevent the video playback from stalling during text extraction processes.
 * **Throttle Transcodes:** Enabled. This is a critical power-management setting that pauses the GPU transcoder once a sufficient playback buffer (configured to 180 seconds) is built, significantly reducing power consumption, thermal output, and preventing continuous 100% GPU utilization.
 
-### 4.6 Network Monitoring & Intrusion Detection (NetAlertX)
+<a id="46-netalertx-network-monitoring"></a>
+### 4.6 NetAlertX (Network Monitoring)
 
 To maintain complete visibility over the physical and wireless Local Area Network (LAN), **NetAlertX** was deployed as a containerized network security scanner. Operating as an automated watchdog, it continuously sweeps the local network to detect rogue devices, monitor the uptime of known endpoints, and maintain detailed connection logs.
 
@@ -969,3 +989,9 @@ To maintain complete visibility over the physical and wireless Local Area Networ
 * **State Tracking & Presence Timeline:** The upper dashboard generates a continuous visual timeline graph. This telemetry logs the exact connection and disconnection timestamps of all network clients, establishing a clear behavioral baseline for household devices.
 * **Gateway & WAN Monitoring:** Beyond local host tracking, the service actively monitors the health of the local Default Gateway (`192.168.1.1`). Furthermore, it utilizes the `INTRNT` plugin to track the router's external Public IP, logging any dynamic WAN IP changes initiated by the ISP.
 * **Rogue Access Alerting:** Any unrecognized MAC address connecting to the router's Wi-Fi or the physical network switch is immediately classified and flagged under the "New devices" threshold. This ensures rapid identification and mitigation of unauthorized network access attempts.
+
+<a id="5-future-expansions"></a>
+## 5. Future Expansions
+
+<a id="6-conclusions"></a>
+## 6. Conclusions
