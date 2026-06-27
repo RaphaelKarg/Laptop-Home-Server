@@ -947,3 +947,20 @@ The following parameters were hardcoded within the Jellyfin Dashboard -> Playbac
 * **Tone Mapping:** Enabled (utilizing the BT.2390 algorithm) to accurately transcode HDR10/DoVi content down to SDR displays without washing out the cinematic colors.
 * **Subtitle Extraction:** Enabled on the fly to prevent the video playback from stalling during text extraction processes.
 * **Throttle Transcodes:** Enabled. This is a critical power-management setting that pauses the GPU transcoder once a sufficient playback buffer (configured to 180 seconds) is built, significantly reducing power consumption, thermal output, and preventing continuous 100% GPU utilization.
+
+### 4.6 Network Monitoring & Intrusion Detection (NetAlertX)
+
+To maintain complete visibility over the physical and wireless Local Area Network (LAN), **NetAlertX** was deployed as a containerized network security scanner. Operating as an automated watchdog, it continuously sweeps the local network to detect rogue devices, monitor the uptime of known endpoints, and maintain detailed connection logs.
+
+<p align="center">
+  <img src="./images/netalertx_1.png" width="90%" alt="NetAlertX Main Dashboard and Device List">
+</p>
+
+> *Figure Z: The NetAlertX dashboard displaying real-time network presence, active ARP scans, and tracking both local endpoints and the external WAN Gateway.*
+
+#### Core Monitoring Capabilities
+
+* **Active Device Discovery (ARP Scanning):** Utilizing the `ARPSCAN` plugin, the system continuously polls the `192.168.1.0/24` subnet. It aggressively maps active IP leases to their physical hardware MAC addresses, instantly identifying any newly connected phones, PCs, or IoT devices.
+* **State Tracking & Presence Timeline:** The upper dashboard generates a continuous visual timeline graph. This telemetry logs the exact connection and disconnection timestamps of all network clients, establishing a clear behavioral baseline for household devices.
+* **Gateway & WAN Monitoring:** Beyond local host tracking, the service actively monitors the health of the local Default Gateway (`192.168.1.1`). Furthermore, it utilizes the `INTRNT` plugin to track the router's external Public IP, logging any dynamic WAN IP changes initiated by the ISP.
+* **Rogue Access Alerting:** Any unrecognized MAC address connecting to the router's Wi-Fi or the physical network switch is immediately classified and flagged under the "New devices" threshold. This ensures rapid identification and mitigation of unauthorized network access attempts.
