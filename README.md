@@ -246,13 +246,13 @@ The following directives were enforced:
 
 ```ini
 PermitRootLogin no
-AllowUsers ***
+AllowUsers <SSH_username>
 ```
 
 These settings provide two important security controls:
 
 - Direct SSH authentication as the `root` user is completely disabled.
-- Remote access is restricted exclusively to the designated administrative account (`raphael`).
+- Remote access is restricted exclusively to the designated administrative account (`<SSH_username>`).
 
 After saving the configuration, the SSH daemon was restarted to apply the new access-control policy:
 
