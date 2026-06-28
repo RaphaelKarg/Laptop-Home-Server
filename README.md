@@ -981,7 +981,7 @@ To maintain complete visibility over the physical and wireless Local Area Networ
   <img src="./images/netalertx_1.png" width="90%" alt="NetAlertX Main Dashboard and Device List">
 </p>
 
-> *Figure Z: The NetAlertX dashboard displaying real-time network presence, active ARP scans, and tracking both local endpoints and the external WAN Gateway.*
+> *Figure 19: The NetAlertX dashboard displaying real-time network presence, active ARP scans, and tracking both local endpoints and the external WAN Gateway.*
 
 #### Core Monitoring Capabilities
 
