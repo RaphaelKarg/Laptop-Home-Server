@@ -684,7 +684,7 @@ To achieve complete remote dominance over the entire physical network and secure
 
 > *Figure 9: Approving the advertised Subnet routes and Exit Node capabilities within the Tailscale Admin Console to enable LAN bridging.*
 
-* **Node Sharing (Principle of Least Privilege):** While all core network devices (`laptop-home-server`, `rafailpc`, `redmi-note-14-pro`) are securely grouped under the primary owner's account (`rafasliakos...`), access had to be granted to a family member. Instead of sharing the master account credentials, Tailscale's "Node Sharing" feature was utilized. The server node was explicitly shared with the brother's email address (`ccube1700@gmail.com`). This securely grants him direct access to the server's self-hosted services without exposing the entire underlying physical network or granting access to the owner's personal client devices.
+* **Node Sharing (Principle of Least Privilege):** While all core network devices (`laptop-home-server`, `rafailpc`, `redmi-note-14-pro`) are securely grouped under the primary owner's account (`rafasliakos...`), access had to be granted to a family member. Instead of sharing the master account credentials, Tailscale's "Node Sharing" feature was utilized. The server node was explicitly shared with the brother's email address (`sibling@example.com`). This securely grants him direct access to the server's self-hosted services without exposing the entire underlying physical network or granting access to the owner's personal client devices.
 
 <p align="center">
   <img src="./images/tailscale_3.png" width="60%" alt="Tailscale Node Sharing Configuration">
