@@ -428,7 +428,7 @@ The foundation of the homelab's network security is **AdGuard Home**, acting as 
   <img src="./images/adguard_2.png" height="430" alt="AdGuard Dashboard Bottom">
 </p>
 
-> *Figure 4: The AdGuard Home Dashboard showcasing real-time statistics, upstream response times, and active Tailscale VPN clients (`100.x.x.x`).*
+> *Figure 3: The AdGuard Home Dashboard showcasing real-time statistics, upstream response times, and active Tailscale VPN clients (`100.x.x.x`).*
 
 **1. Docker Deployment via CasaOS**
 The service is deployed using the official `adguard/adguardhome:v0.107.76` image running on a `bridge` network. To ensure stability and avoid port conflicts, the container is meticulously configured:
@@ -451,7 +451,7 @@ The filtering engine is highly customized, successfully intercepting and neutral
   <img src="./images/adguard_3.png" width="75%" alt="AdGuard Blocklists">
 </p>
 
-> *Figure 5: The active DNS blocklists, strategically selected to neutralize ads, trackers, and malware without breaking core web functionality.*
+> *Figure 4: The active DNS blocklists, strategically selected to neutralize ads, trackers, and malware without breaking core web functionality.*
 
 * **General Ad & Tracker Blocking:**
   * **AdGuard DNS Filter:** The core filter, optimized specifically for DNS-level blocking of ads and trackers.
@@ -501,7 +501,7 @@ While Linux natively supports NTFS, the external 1TB backup drive (`EXTERNAL_HDD
   <img src="./images/file_server4.png" width="75%" alt="CasaOS File Management Interface">
 </p>
 
-> *Figure 6: The CasaOS interface displaying the internal storage structure and the isolated `BACKUP FILES` directory.*
+> *Figure 5: The CasaOS interface displaying the internal storage structure and the isolated `BACKUP FILES` directory.*
 
 **2. Access Control & Samba Configuration (Zero Trust Local Access)**
 To enforce strict privacy among family members, the default CasaOS UI sharing mechanisms were bypassed. Relying on the GUI caused hierarchy conflicts (sharing a parent directory automatically unshared child directories). Instead, access was hardcoded at the OS OSI Layer 7 level via the `/etc/samba/smb.conf` file.
@@ -592,7 +592,7 @@ To enforce strict privacy among family members, the default CasaOS UI sharing me
   <img src="./images/file_server3.png" height="320" style="object-fit: cover;" alt="Windows Security Credentials">
 </p>
 
-> *Figure 7: The strict, user-isolated Samba directory structure alongside the Windows Network Credentials prompt enforcing secure, authenticated access.*
+> *Figure 6: The strict, user-isolated Samba directory structure alongside the Windows Network Credentials prompt enforcing secure, authenticated access.*
 
 **3. Data Lifecycle Automations (Cron Jobs)**
 To prevent storage exhaustion and ensure data redundancy, the system relies on carefully scheduled Cron jobs, split between the Root and User crontabs. The scheduling utilizes the "Maintenance Window" (04:00 - 06:00 AM) to avoid network congestion.
@@ -629,7 +629,7 @@ Accessing the server files is optimized through a Split Tunneling approach. Loca
   <img src="./images/file_server1.png" width="75%" alt="Dual Access Network Shortcuts">
 </p>
 
-> *Figure 8: Smart routing execution via dedicated Windows shortcuts separating Local Area Network (LAN) traffic from encrypted Virtual Private Network (VPN) traffic.*
+> *Figure 7: Smart routing execution via dedicated Windows shortcuts separating Local Area Network (LAN) traffic from encrypted Virtual Private Network (VPN) traffic.*
 
 * **LAN Shortcut (`\\192.168.1.2`):** Bypasses the VPN entirely to achieve raw 1000 Mbps Gigabit speeds when physically at home.
 * **VPN Shortcut (`\\100.x.x.x`):** Routes via the Tailscale WireGuard tunnel, offering encrypted, Zero-Trust access to the files from anywhere in the world, even on untrusted public Wi-Fi.
@@ -682,7 +682,7 @@ To achieve complete remote dominance over the entire physical network and secure
   <img src="./images/tailscale_2.png" width="60%" alt="Tailscale Subnet and Exit Node Configuration">
 </p>
 
-> *Figure 9: Approving the advertised Subnet routes and Exit Node capabilities within the Tailscale Admin Console to enable LAN bridging.*
+> *Figure 8: Approving the advertised Subnet routes and Exit Node capabilities within the Tailscale Admin Console to enable LAN bridging.*
 
 * **Node Sharing (Principle of Least Privilege):** While all core network devices (`laptop-home-server`, `rafailpc`, `redmi-note-14-pro`) are securely grouped under the primary owner's account (`rafasliakos...`), access had to be granted to a family member. Instead of sharing the master account credentials, Tailscale's "Node Sharing" feature was utilized. The server node was explicitly shared with the brother's email address (`sibling@example.com`). This securely grants him direct access to the server's self-hosted services without exposing the entire underlying physical network or granting access to the owner's personal client devices.
 
@@ -690,7 +690,7 @@ To achieve complete remote dominance over the entire physical network and secure
   <img src="./images/tailscale_3.png" width="60%" alt="Tailscale Node Sharing Configuration">
 </p>
 
-> *Figure 10: Utilizing Tailscale's Node Sharing feature to grant isolated access to a specific family member without exposing the entire Tailnet.*
+> *Figure 9: Utilizing Tailscale's Node Sharing feature to grant isolated access to a specific family member without exposing the entire Tailnet.*
 
 #### 4. Global DNS Override & AdGuard Integration (The "Magic Trick")
 A highly advanced Split-Tunneling and DNS overriding architecture was configured to ensure Ad-Blocking operates globally, even when the Exit Node routing is intentionally disabled for latency-sensitive tasks (like online gaming).
@@ -723,7 +723,7 @@ To validate the integrity of the Zero-Trust mesh and the routing speed, exhausti
   <img src="./images/tailscale_1.png" width="90%" alt="Tailscale Machines Dashboard Final State">
 </p>
 
-> *Figure 11: The final state of the Tailscale dashboard, displaying the obfuscated VPN IPs, the core server with all active routing badges (`Shared out`, `Expiry disabled`, `Subnets`, `Exit Node`), and the associated client devices.*
+> *Figure 10: The final state of the Tailscale dashboard, displaying the obfuscated VPN IPs, the core server with all active routing badges (`Shared out`, `Expiry disabled`, `Subnets`, `Exit Node`), and the associated client devices.*
 
 <a id="44-game-server-management-crafty-playitgg"></a>
 ### 4.4 Game Server Management (Crafty) & Playit.gg
@@ -734,7 +734,7 @@ Beyond core network infrastructure and file systems, the homelab is architected 
   <img src="./images/crafty_1.png" width="90%" alt="Crafty Controller Unified Dashboard">
 </p>
 
-> *Figure X: The Crafty Controller unified dashboard managing both the Primary (Local) and Secondary (Public) isolated Minecraft instances, efficiently operating with minimal CPU overhead.*
+> *Figure 11: The Crafty Controller unified dashboard managing both the Primary (Local) and Secondary (Public) isolated Minecraft instances, efficiently operating with minimal CPU overhead.*
 
 #### 1. Bare-Metal Storage Strategy & I/O Performance Optimization
 Game servers, particularly Minecraft Java Edition, are notoriously heavy on disk Read/Write operations due to constant chunk generation, world saving, and player position logging. Utilizing a mechanical drive for this task introduces catastrophic performance bottlenecks (TPS drops, block lag).
@@ -758,7 +758,7 @@ To accommodate different game modes (e.g., a pure Vanilla survival world alongsi
   <img src="./images/crafty_2.png" width="90%" alt="Crafty Controller Live Terminal & RAM Monitoring">
 </p>
 
-> *Figure Y: Live interactive terminal and resource monitoring for the primary game instance. The dashboard confirms the strict memory allocation policy is actively respected (currently utilizing 1.6GB RAM).*
+> *Figure 12: Live interactive terminal and resource monitoring for the primary game instance. The dashboard confirms the strict memory allocation policy is actively respected (currently utilizing 1.6GB RAM).*
 
 <a id="441-secure-public-exposure-tunneling-architecture-playitgg"></a>
 #### 4.4.1 Secure Public Exposure & Tunneling Architecture (Playit.gg)
@@ -810,7 +810,7 @@ The deployment of the Playit.gg agent onto the Linux server is fully automated u
   <img src="./images/playit_agent.png" width="85%" alt="Playit Linux Daemon Active Terminal Stream">
 </p>
 
-> *Figure 12: The local Playit agent running via the server terminal, displaying the live v1.0.10 connection stream, active TCP client handshakes, and the successful dual-tunnel port mappings down to sockets 25565 and 25566. Command: "playit"*
+> *Figure 13: The local Playit agent running via the server terminal, displaying the live v1.0.10 connection stream, active TCP client handshakes, and the successful dual-tunnel port mappings down to sockets 25565 and 25566. Command: "playit"*
 
 #### 2. Cloud Tunnel Multiplexing & Dual-Port Allocation
 With the localized hardware agent successfully registered to the control plane, the network matrix was configured to handle incoming traffic multiplexing. Because the internal architecture runs two distinct, isolated game servers on independent sockets (`25565` and `25566`), two autonomous tunnel instances were defined inside the centralized panel interface.
@@ -822,7 +822,7 @@ With the localized hardware agent successfully registered to the control plane, 
   <img src="./images/playit4.png" width="85%" alt="Playit Cloud Management Dashboard Master View">
 </p>
 
-> *Figure 13: The master overview interface displaying the registered Linux hardware daemon synchronized with the account profile context.*
+> *Figure 14: The master overview interface displaying the registered Linux hardware daemon synchronized with the account profile context.*
 
 * **Evaluating Agent Parameters & Connection Architecture:**
   The underlying telemetry sheet verifies the structural properties of the background service daemon thread, registering the loopback network translation pathways.
@@ -831,7 +831,7 @@ With the localized hardware agent successfully registered to the control plane, 
   <img src="./images/playit5.png" width="80%" alt="Playit Cloud Management Dashboard Master View">
 </p>
 
-> *Figure 13: Reviewing the architectural mapping properties, software versioning, and internal OS layer profiles of the local agent thread.*
+> *Figure 15: Reviewing the architectural mapping properties, software versioning, and internal OS layer profiles of the local agent thread.*
 
 * **Multiplexed Custom Tunnel Pathway Allocations:**
   To safely feed traffic downstream into the isolated worlds without socket overlap collisions, the mapping parameters split the network boundary over two dedicated routing tunnels:
@@ -840,7 +840,7 @@ With the localized hardware agent successfully registered to the control plane, 
   <img src="./images/playit1.png" width="85%" alt="Playit Cloud Management Dashboard Master View">
 </p>
 
-> *Figure 14: The active tunnel matrix showing the isolated game profiles successfully defined inside the cloud reverse proxy platform.*
+> *Figure 16: The active tunnel matrix showing the isolated game profiles successfully defined inside the cloud reverse proxy platform.*
 
   1. **Tunnel Pathway 1 (LOCAL MINECRAFT SERVER 1_P):** Binds the inbound global edge data straight onto the native standard game port socket (`127.0.0.1:25565`) using the optimized pre-configured template profiles.
 
@@ -848,7 +848,7 @@ With the localized hardware agent successfully registered to the control plane, 
   <img src="./images/playit2.png" width="75%" alt="Playit Cloud Management Dashboard Master View">
 </p>
 
-> *Figure 15: Structural blueprint mapping proxy endpoints down onto the primary loopback game socket port 25565.*
+> *Figure 17: Structural blueprint mapping proxy endpoints down onto the primary loopback game socket port 25565.*
 
   2. **Tunnel Pathway 2 (PUBLIC SERVER MINECRAFT 2_V):** Establishes an alternate custom forward boundary path mapping incoming client packets directly over the designated experimental host port socket (`127.0.0.1:25566`).
 
@@ -856,7 +856,7 @@ With the localized hardware agent successfully registered to the control plane, 
   <img src="./images/playit3.png" width="75%" alt="Playit Cloud Management Dashboard Master View">
 </p>
 
-> *Figure 16: Custom custom-port proxy pathway rule successfully binding external inputs straight down to the internal 25566 socket.*
+> *Figure 18: Custom custom-port proxy pathway rule successfully binding external inputs straight down to the internal 25566 socket.*
 
 External users purely input these friendly obfuscated proxy domains into their multiplayer address box. Packet groups hitting the proxy node are decoded, packaged inside the secure reverse-proxy stream, and released precisely onto the host local loopback ports, seamlessly evading the home firewall.
 
@@ -873,7 +873,7 @@ To centralize media consumption and eliminate reliance on commercial streaming s
   <img src="./images/jellyfin_1.png" width="90%" alt="Jellyfin Administrator Dashboard">
 </p>
 
-> *Figure 17: The Jellyfin administrative dashboard displaying the active server version, live client activity, and mapped container cache paths.*
+> *Figure 19: The Jellyfin administrative dashboard displaying the active server version, live client activity, and mapped container cache paths.*
 
 #### 1. Storage Architecture & Library Organization
 To ensure the media server indexes content accurately, an organized directory structure was established on the primary storage drive (`HDD-1TB`) under the `common` shared folder. 
@@ -885,7 +885,7 @@ To ensure the media server indexes content accurately, an organized directory st
   <img src="./images/jellyfin_2.png" width="85%" alt="Jellyfin Client UI Library View">
 </p>
 
-> *Figure 18: The client-side interface reflecting the strict library separation (Movies, Music, Shows) successfully enforced during the directory mapping phase.*
+> *Figure 20: The client-side interface reflecting the strict library separation (Movies, Music, Shows) successfully enforced during the directory mapping phase.*
 
 #### 2. Network Security & Zero-Trust Configuration
 During deployment, strict networking rules were enforced to maintain the integrity of the home firewall.
@@ -981,7 +981,7 @@ To maintain complete visibility over the physical and wireless Local Area Networ
   <img src="./images/netalertx_1.png" width="90%" alt="NetAlertX Main Dashboard and Device List">
 </p>
 
-> *Figure 19: The NetAlertX dashboard displaying real-time network presence, active ARP scans, and tracking both local endpoints and the external WAN Gateway.*
+> *Figure 21: The NetAlertX dashboard displaying real-time network presence, active ARP scans, and tracking both local endpoints and the external WAN Gateway.*
 
 #### Core Monitoring Capabilities
 
