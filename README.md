@@ -208,7 +208,7 @@ sudo dpkg-reconfigure --priority=low unattended-upgrades
 **3. Remote Access (SSH) & Deployment**
 With the server physically closed and secured, administration transitioned to a secondary workstation. Initially, the router assigned the server a dynamic DHCP address (`192.168.1.145`). An SSH session was established to access the terminal remotely:
 ```bash
-ssh raphael@192.168.1.145
+ssh <SSH_username>@192.168.1.145
 ```
 *(Note: This dynamic IP was strictly temporary for the initial setup phase. The IP was later permanently pinned to `192.168.1.2` via Netplan, as detailed in Section 3.6).*
 
