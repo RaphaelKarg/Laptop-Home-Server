@@ -458,7 +458,7 @@ The filtering engine is highly customized, successfully intercepting and neutral
   * **OISD Blocklist Small:** A highly curated, "set-and-forget" list that aggressively blocks ads and telemetry with virtually zero false positives.
   * **HaGeZi's Normal Blocklist:** An excellent, balanced list targeting advertising, tracking, and metrics domains, designed to clean up the internet experience without breaking legitimate web functionality.
   * **AdAway Default Blocklist:** A mobile-focused blocklist, crucial for stopping in-app advertisements and analytics tracking on family smartphones and tablets.
-  * **Steven Black's List:** A legendary, consolidated hosts file that blocks a massive array of adware and malware domains.
+  * **Steven Black's List:** A a well-established, widely-used hosts file that blocks a massive array of adware and malware domains.
 
 * **Specialized & Regional Filtering:**
   * **Perflyst and Dandelion Sprout's Smart-TV Blocklist:** Specifically chosen to combat the aggressive telemetry and built-in advertising found in modern Smart TVs (like the household's LG WebOS TV).
@@ -668,7 +668,7 @@ sudo sysctl -p /etc/sysctl.d/99-tailscale.conf
 ```
 
 #### 3. Subnet Routing, Exit Node Architecture & Device Sharing
-To achieve complete remote dominance over the entire physical network and securely onboard family members, the server was elevated to a **Subnet Router** and **Exit Node**.
+To achieve complete remote administrative access to the network and securely onboard family members, the server was elevated to a **Subnet Router** and **Exit Node**.
 
 * **Subnet Routing (Emergency Router Management):** By default, Tailscale only connects devices actively running the application. The primary motivation for deploying a Subnet Router was to establish secure, emergency remote management capabilities for the Cosmote ISP Router (`192.168.1.1`). By bridging the VPN tunnel with the physical LAN (`192.168.1.0/24`), complete administrative access to the home router (and any other general non-Tailscale local devices) is maintained from any remote location, effectively eliminating the need to expose dangerous public-facing web management ports.
 * **The Execution:** The node was instructed to advertise the local IP range (`192.168.1.0/24`) and its Exit Node capabilities simultaneously using the following command:
@@ -696,7 +696,7 @@ To achieve complete remote dominance over the entire physical network and secure
 A highly advanced Split-Tunneling and DNS overriding architecture was configured to ensure Ad-Blocking operates globally, even when the Exit Node routing is intentionally disabled for latency-sensitive tasks (like online gaming).
 
 * **Tailscale DNS Configuration:** In the Tailscale Admin Console, the server's VPN IP (`100.X.X.X`) was added as a Custom Global Nameserver, and the **"Override local DNS"** toggle was activated.
-* **The "Magic Trick" Logic:** When a remote device sets the Exit Node to `None`, its heavy traffic (downloads, streaming) utilizes the direct local Wi-Fi to achieve maximum speed. However, due to the DNS Override, the microscopic DNS queries are routed via the Tailscale tunnel (`100.100.100.100` MagicDNS routes to `100.X.X.X`) directly to the home AdGuard container. This hybrid approach guarantees network-wide ad-blocking and Quad9 DoH malware protection with zero bandwidth throttling.
+* **DNS Override Logic:** When a remote device sets the Exit Node to `None`, its heavy traffic (downloads, streaming) utilizes the direct local Wi-Fi to achieve maximum speed. However, due to the DNS Override, the microscopic DNS queries are routed via the Tailscale tunnel (`100.100.100.100` MagicDNS routes to `100.X.X.X`) directly to the home AdGuard container. This hybrid approach guarantees network-wide ad-blocking and Quad9 DoH malware protection with zero bandwidth throttling.
 
 #### 5. Resolving IPv6 DNS Leaks
 During local testing, a DNS leak was identified: Windows client devices were bypassing the AdGuard sinkhole by querying the ISP's (Cosmote) default IPv6 DNS servers.
@@ -709,7 +709,7 @@ To validate the integrity of the Zero-Trust mesh and the routing speed, exhausti
 * **Direct Peer-to-Peer Verification (Tailscale Ping):**
   Executing `tailscale ping 100.X.X.X` yielded:
   `pong from laptop-home-server (100.X.X.X) via [2a02:587:...]:41641 in 6ms`
-  *Analysis:* The `via` parameter confirmed the connection was entirely direct (P2P), completely bypassing slower DERP relays. It utilized the server's public Cosmote IPv6 address via UDP port `41641`, achieving an astonishingly low latency of **6ms to 19ms** across cities.
+  *Analysis:* The `via` parameter confirmed the connection was entirely direct (P2P), completely bypassing slower DERP relays. It utilized the server's public Cosmote IPv6 address via UDP port `41641`, achieving an very low latency of **6ms to 19ms** across cities.
 * **Encapsulation & Firewall Testing (Tracert):**
   Executing a `tracert` to the Tailscale IP (`100.X.X.X`) showed a single (1) hop, proving full WireGuard encapsulation. Conversely, executing a `tracert` directly to the server's public IPv6 address revealed the ISP's routing nodes until it reached the home router, where it correctly timed out (`* * * Request timed out`). This confirmed the home firewall is impenetrable to public ICMP requests, yet completely accessible via the authenticated Tailscale tunnel.
 * **VPN Overhead & Bandwidth Validation (Speedtest):**
@@ -737,7 +737,7 @@ Beyond core network infrastructure and file systems, the homelab is architected 
 > *Figure 11: The Crafty Controller unified dashboard managing both the Primary (Local) and Secondary (Public) isolated Minecraft instances, efficiently operating with minimal CPU overhead.*
 
 #### 1. Bare-Metal Storage Strategy & I/O Performance Optimization
-Game servers, particularly Minecraft Java Edition, are notoriously heavy on disk Read/Write operations due to constant chunk generation, world saving, and player position logging. Utilizing a mechanical drive for this task introduces catastrophic performance bottlenecks (TPS drops, block lag).
+Game servers, particularly Minecraft Java Edition, are notoriously heavy on disk Read/Write operations due to constant chunk generation, world saving, and player position logging. Utilizing a mechanical drive for this task introduces significant performance bottlenecks (TPS drops, block lag).
 
 * **Storage Allocation:** To guarantee maximum Input/Output Operations Per Second (IOPS) and fluid chunk rendering, all Crafty Controller container paths and root server directories were strictly bound to the **120GB M.2 SSD** (OS Drive). The 1TB mechanical HDD is entirely bypassed for this workload to maintain fast response times.
 * **Java Virtual Machine (JVM) Heap & RAM Budgeting:** The host system operates on a strict budget of 8GB DDR4 RAM. Since Minecraft allocations are un-swappable and reserved entirely upon boot, a meticulous memory management profile was enforced to prevent the Linux Out-Of-Memory (OOM) Killer from terminating critical core services (AdGuard, Tailscale, Netplan):
@@ -762,7 +762,7 @@ To accommodate different game modes (e.g., a pure Vanilla survival world alongsi
 
 <a id="441-secure-public-exposure-tunneling-architecture-playitgg"></a>
 #### 4.4.1 Secure Public Exposure & Tunneling Architecture (Playit.gg)
-Exposing these local game instances to external players presents a significant security risk. Traditional methods dictate utilizing **Port Forwarding** on the ISP router. However, this approach explicitly exposes the residential public WAN IP address to the open web, inviting persistent automated port scans, brute-force exploitation attempts, and catastrophic Distributed Denial of Service (DDoS) attacks. Furthermore, under Carrier-Grade NAT (CGNAT) environments, inbound port forwarding is physically blocked by the ISP.
+Exposing these local game instances to external players presents a significant security risk. Traditional methods dictate utilizing **Port Forwarding** on the ISP router. However, this approach explicitly exposes the residential public WAN IP address to the open web, inviting persistent automated port scans, brute-force exploitation attempts, and Distributed Denial of Service (DDoS) attacks. Furthermore, under Carrier-Grade NAT (CGNAT) environments, inbound port forwarding is physically blocked by the ISP.
 
 To achieve maximum Operational Security (OPSEC), mask the home network entirely, and route traffic without modifying the primary firewall, a reverse-tunneling framework via **Playit.gg** was implemented. Playit operates a global network of distributed proxy edges. A localized, low-overhead native agent runs on the host OS, maintaining a secure, outbound persistent connection to the Playit cloud. External players connect directly to Playit's hardened public edge, which securely proxies the packets back down the established outbound tunnel directly to the respective local game sockets. **The home public IP address remains completely hidden and un-scannable.**
 
